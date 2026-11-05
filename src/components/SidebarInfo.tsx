@@ -1,18 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
   X,
   Volume2,
   Square,
-  Landmark,
-  BookOpen,
-  Quote,
-  Sparkles,
   ChevronLeft,
   ChevronRight,
-  GraduationCap,
-  Layers,
-  Award,
+  BookOpen,
+  Landmark,
+  Camera,
+  Maximize2,
 } from 'lucide-react';
 import { TourSpot, TOUR_SPOTS } from '../data/tourData';
 
@@ -23,6 +19,8 @@ interface SidebarInfoProps {
   onOpenQuiz: () => void;
 }
 
+const FALLBACK_IMAGE = './images/heritage/cottage-3.jpg';
+
 export const SidebarInfo: React.FC<SidebarInfoProps> = ({
   spot,
   onClose,
@@ -31,6 +29,8 @@ export const SidebarInfo: React.FC<SidebarInfoProps> = ({
 }) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [selectedArtifactIdx, setSelectedArtifactIdx] = useState<number>(0);
+  const [selectedPhotoIdx, setSelectedPhotoIdx] = useState<number>(0);
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   const stopSpeech = useCallback(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -41,16 +41,25 @@ export const SidebarInfo: React.FC<SidebarInfoProps> = ({
 
   useEffect(() => {
     setSelectedArtifactIdx(0);
+    setSelectedPhotoIdx(0);
+    setIsLightboxOpen(false);
     stopSpeech();
     return () => {
       stopSpeech();
     };
   }, [spot, stopSpeech]);
 
+  if (!spot) return null;
+
+  const photos =
+    spot.gallery && spot.gallery.length > 0
+      ? spot.gallery
+      : [{ url: spot.imageUrl, caption: spot.imageCaption }];
+
+  const activePhoto = photos[selectedPhotoIdx] || photos[0];
+
   const handleToggleSpeech = () => {
-    if (!spot) return;
     if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-      alert('Trình duyệt của bạn không hỗ trợ Web Speech API.');
       return;
     }
 
@@ -61,24 +70,17 @@ export const SidebarInfo: React.FC<SidebarInfoProps> = ({
 
     window.speechSynthesis.cancel();
 
-    const narrationText = `${spot.title}. Hiện vật tiêu biểu gồm: ${spot.artifacts.join(
-      ', '
-    )}. Câu chuyện lịch sử: ${spot.historicalStory} Liên hệ Tư tưởng Hồ Chí Minh: ${
-      spot.hcmThoughtConnection
-    } Trích dẫn tiêu biểu: ${spot.keyQuote.quote}`;
+    const narrationText = `${spot.title}. ${spot.historicalStory} Liên hệ Tư tưởng Hồ Chí Minh: ${spot.hcmThoughtConnection} ${spot.keyQuote.quote}`;
 
     const utterance = new SpeechSynthesisUtterance(narrationText);
     utterance.lang = 'vi-VN';
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
+    utterance.rate = 0.96;
 
     const voices = window.speechSynthesis.getVoices();
     const vietnameseVoice = voices.find(
       (v) =>
         v.lang.toLowerCase().includes('vi') ||
-        v.name.toLowerCase().includes('viet') ||
-        v.name.toLowerCase().includes('an') ||
-        v.name.toLowerCase().includes('linh')
+        v.name.toLowerCase().includes('viet')
     );
     if (vietnameseVoice) {
       utterance.voice = vietnameseVoice;
@@ -93,7 +95,6 @@ export const SidebarInfo: React.FC<SidebarInfoProps> = ({
   };
 
   const handlePrevNext = (direction: 'prev' | 'next') => {
-    if (!spot) return;
     const currentIndex = TOUR_SPOTS.findIndex((s) => s.id === spot.id);
     if (currentIndex === -1) return;
     const nextIndex =
@@ -104,208 +105,323 @@ export const SidebarInfo: React.FC<SidebarInfoProps> = ({
   };
 
   return (
-    <AnimatePresence>
-      {spot && (
-        <motion.aside
-          key="sidebar-drawer"
-          initial={{ x: '100%', opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: '100%', opacity: 0 }}
-          transition={{ type: 'spring', damping: 30, stiffness: 280 }}
-          className="fixed top-20 bottom-24 right-5 z-30 w-[calc(100vw-2.5rem)] sm:w-[450px] lg:w-[480px] flex flex-col rounded-3xl liquid-glass overflow-hidden shadow-[0_30px_90px_rgba(0,0,0,0.85)] border border-white/15"
-        >
-          {/* Header Drawer */}
-          <div className="relative px-6 pt-6 pb-4 border-b border-white/10 bg-gradient-to-b from-white/5 to-transparent">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="px-3 py-1 rounded-full text-[11px] font-cinzel font-bold text-amber-200 bg-amber-500/15 border border-amber-400/30">
-                  DI SẢN #{spot.id}/5
-                </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-medium text-stone-300 bg-white/5 border border-white/10">
-                  <Layers className="w-3 h-3 text-amber-300/80" />
-                  {spot.floor}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={onClose}
-                title="Đóng bảng thông tin"
-                className="p-2 rounded-full text-stone-400 hover:text-stone-100 hover:bg-white/10 transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
+    <>
+      <aside className="fixed top-20 bottom-20 right-4 z-30 w-[calc(100vw-2rem)] sm:w-[430px] lg:w-[460px] flex flex-col rounded-2xl museum-panel overflow-hidden">
+        {/* Header địa điểm */}
+        <div className="px-5 pt-4 pb-3.5 border-b border-[#D6CBB8]/15 flex items-start justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2 text-[11px] text-[#C6A87C] font-medium">
+              <span>Điểm {spot.id}/{TOUR_SPOTS.length}</span>
+              <span>•</span>
+              <span>{spot.zone}</span>
             </div>
-
-            <h2 className="mt-3 text-xl sm:text-2xl font-bold font-cormorant leading-tight text-gold-leaf tracking-wide">
+            <h2 className="mt-1 text-lg sm:text-xl font-editorial font-semibold text-[#F5F2EB] leading-snug">
               {spot.title}
             </h2>
-            <p className="mt-1 text-xs text-stone-300/80 font-normal">
-              {spot.subtitle}
-            </p>
-
-            {/* Thuyết minh giọng đọc */}
-            <div className="mt-4">
-              <button
-                type="button"
-                onClick={handleToggleSpeech}
-                className={`w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs font-medium transition-all cursor-pointer ${
-                  isSpeaking
-                    ? 'bg-rose-950/80 text-rose-200 border border-rose-500/40 shadow-lg'
-                    : 'liquid-glass-pill hover:liquid-glass-active text-amber-100'
-                }`}
-              >
-                {isSpeaking ? (
-                  <>
-                    <Square className="w-3.5 h-3.5 fill-current" />
-                    <span>Dừng đọc thuyết minh</span>
-                    <span className="flex items-end gap-0.5 h-3 ml-2">
-                      <span className="w-0.5 h-full bg-rose-400 rounded-full animate-soundwave-1" />
-                      <span className="w-0.5 h-full bg-rose-400 rounded-full animate-soundwave-2" />
-                      <span className="w-0.5 h-full bg-rose-400 rounded-full animate-soundwave-3" />
-                      <span className="w-0.5 h-full bg-rose-400 rounded-full animate-soundwave-4" />
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <Volume2 className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Nghe thuyết minh audio di sản</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <p className="mt-0.5 text-xs text-[#A8A29E]">{spot.subtitle}</p>
           </div>
 
-          {/* Nội dung chi tiết */}
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
-            {/* 1. HIỆN VẬT TIÊU BIỂU */}
-            <section>
-              <div className="flex items-center gap-2 text-[11px] font-cinzel font-semibold tracking-widest text-amber-300/90 mb-3">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>HIỆN VẬT TIÊU BIỂU</span>
+          <button
+            type="button"
+            onClick={onClose}
+            title="Đóng thuyết minh"
+            className="p-1.5 rounded-lg text-[#A8A29E] hover:text-white hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Nội dung cuộn */}
+        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+          {/* 1. BỘ SƯU TẬP ẢNH TƯ LIỆU THỰC TẾ TẠI KHU DI TÍCH */}
+          <div className="rounded-xl overflow-hidden border border-[#D6CBB8]/20 bg-[#111311]">
+            <div className="relative aspect-[16/10] w-full bg-[#1C1F1D] overflow-hidden group">
+              <img
+                key={activePhoto.url}
+                src={activePhoto.url}
+                alt={`${spot.title} - Ảnh tư liệu ${selectedPhotoIdx + 1}`}
+                loading="eager"
+                onError={(e) => {
+                  const target = e.currentTarget;
+                  if (!target.src.endsWith('cottage-3.jpg')) {
+                    target.src = FALLBACK_IMAGE;
+                  }
+                }}
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              />
+              <div className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-md bg-black/75 text-[#F5F2EB] text-[11px] flex items-center gap-1.5">
+                <Camera className="w-3 h-3 text-[#C6A87C]" />
+                <span>
+                  Ảnh tư liệu thực tế ({selectedPhotoIdx + 1}/{photos.length})
+                </span>
               </div>
 
-              <div className="flex flex-wrap gap-1.5 mb-3">
-                {spot.artifactDetails.map((item, idx) => (
+              <button
+                type="button"
+                onClick={() => setIsLightboxOpen(true)}
+                title="Phóng to ảnh tư liệu"
+                className="absolute top-2.5 right-2.5 p-1.5 rounded-md bg-black/75 text-[#F5F2EB] hover:bg-black/90 transition-colors cursor-pointer"
+              >
+                <Maximize2 className="w-3.5 h-3.5" />
+              </button>
+
+              {photos.length > 1 && (
+                <div className="absolute bottom-2.5 right-2.5 flex items-center gap-1">
+                  {photos.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setSelectedPhotoIdx(idx)}
+                      className={`px-2 py-0.5 rounded text-[11px] font-medium cursor-pointer transition-colors ${
+                        selectedPhotoIdx === idx
+                          ? 'bg-[#8C6747] text-white'
+                          : 'bg-black/75 text-[#D6CFC2] hover:bg-black/90'
+                      }`}
+                    >
+                      Ảnh {idx + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Thanh thumbnail khi có nhiều ảnh tư liệu */}
+            {photos.length > 1 && (
+              <div className="px-3.5 pt-2.5 flex items-center gap-2 overflow-x-auto">
+                {photos.map((photo, idx) => (
                   <button
-                    key={idx}
+                    key={photo.url}
                     type="button"
-                    onClick={() => setSelectedArtifactIdx(idx)}
-                    className={`px-3 py-1.5 rounded-xl text-xs transition-all border cursor-pointer ${
-                      selectedArtifactIdx === idx
-                        ? 'bg-amber-400/15 border-amber-400/50 text-amber-200 font-medium'
-                        : 'bg-white/5 border-white/10 text-stone-300 hover:border-white/20'
+                    onClick={() => setSelectedPhotoIdx(idx)}
+                    className={`relative w-16 h-10 rounded-md overflow-hidden border shrink-0 cursor-pointer transition-opacity ${
+                      selectedPhotoIdx === idx
+                        ? 'border-[#C6A87C] opacity-100'
+                        : 'border-white/10 opacity-60 hover:opacity-90'
                     }`}
                   >
-                    {item.name}
+                    <img
+                      src={photo.url}
+                      alt={`Ảnh nhỏ ${idx + 1}`}
+                      onError={(e) => {
+                        const target = e.currentTarget;
+                        if (!target.src.endsWith('cottage-3.jpg')) {
+                          target.src = FALLBACK_IMAGE;
+                        }
+                      }}
+                      className="w-full h-full object-cover"
+                    />
                   </button>
                 ))}
               </div>
+            )}
 
-              {spot.artifactDetails[selectedArtifactIdx] && (
-                <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/10 text-xs space-y-1.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-semibold text-amber-100 text-sm font-cormorant">
-                      {spot.artifactDetails[selectedArtifactIdx].name}
-                    </span>
-                    <span className="px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300/90 text-[10px] font-medium border border-amber-500/20">
-                      {spot.artifactDetails[selectedArtifactIdx].origin}
-                    </span>
-                  </div>
-                  <p className="text-stone-300 leading-relaxed pt-1">
-                    {spot.artifactDetails[selectedArtifactIdx].description}
-                  </p>
-                </div>
-              )}
-            </section>
-
-            {/* 2. CÂU CHUYỆN LỊCH SỬ */}
-            <section className="p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-              <div className="flex items-center gap-2 text-[11px] font-cinzel font-semibold tracking-widest text-amber-300/90 mb-2">
-                <Landmark className="w-3.5 h-3.5" />
-                <span>CÂU CHUYỆN LỊCH SỬ</span>
-              </div>
-              <p className="text-xs sm:text-[13px] text-stone-300 leading-relaxed font-light">
-                {spot.historicalStory}
-              </p>
-            </section>
-
-            {/* 3. TRÍCH DẪN NỔI BẬT */}
-            <section className="relative p-5 rounded-2xl bg-gradient-to-br from-amber-500/[0.08] via-transparent to-white/[0.02] border border-amber-400/25">
-              <Quote className="w-8 h-8 text-amber-400/15 absolute top-3 right-4 pointer-events-none" />
-              <div className="text-[10px] font-cinzel font-semibold tracking-widest text-amber-300/80 mb-2">
-                TRÍCH DẪN TƯ TƯỞNG
-              </div>
-              <blockquote className="text-sm sm:text-base italic font-cormorant text-amber-100/95 leading-relaxed">
-                {spot.keyQuote.quote}
-              </blockquote>
-              <div className="mt-2.5 text-xs text-amber-300/70 font-light">
-                — {spot.keyQuote.context}
-              </div>
-            </section>
-
-            {/* 4. LIÊN HỆ TƯ TƯỞNG HỒ CHÍ MINH */}
-            <section className="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/20">
-              <div className="flex items-center gap-2 text-[11px] font-cinzel font-semibold tracking-widest text-emerald-300 mb-2">
-                <BookOpen className="w-3.5 h-3.5" />
-                <span>LIÊN HỆ LÝ LUẬN TƯ TƯỞNG HỒ CHÍ MINH</span>
-              </div>
-              <p className="text-xs sm:text-[13px] text-stone-200 leading-relaxed font-light">
-                {spot.hcmThoughtConnection}
-              </p>
-
-              <div className="mt-3.5 pt-3 border-t border-emerald-500/15">
-                <div className="flex items-center gap-1.5 text-[10px] font-cinzel text-emerald-300/80 mb-2">
-                  <Award className="w-3 h-3" />
-                  <span>LUẬN ĐIỂM CỐT LÕI:</span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {spot.coreValues.map((val, i) => (
-                    <span
-                      key={i}
-                      className="px-2.5 py-1 rounded-full text-[11px] font-light bg-emerald-500/10 text-emerald-200 border border-emerald-500/25"
-                    >
-                      {val}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </section>
+            <p className="px-3.5 py-2.5 text-[11px] text-[#B8B2A6] leading-relaxed border-t border-[#D6CBB8]/10 mt-2">
+              {activePhoto.caption}
+            </p>
           </div>
 
-          {/* Footer Điều hướng */}
-          <div className="px-6 py-4 border-t border-white/10 bg-white/[0.02] flex items-center justify-between gap-3">
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => handlePrevNext('prev')}
-                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs liquid-glass-pill text-stone-300 cursor-pointer"
-              >
-                <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Trước</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => handlePrevNext('next')}
-                className="flex items-center gap-1 px-3 py-2 rounded-xl text-xs liquid-glass-pill text-stone-300 cursor-pointer"
-              >
-                <span>Sau</span>
-                <ChevronRight className="w-3.5 h-3.5" />
-              </button>
+          {/* Nút Nghe thuyết minh Audio */}
+          <button
+            type="button"
+            onClick={handleToggleSpeech}
+            className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-medium transition-colors cursor-pointer ${
+              isSpeaking
+                ? 'bg-[#7C2D12] text-white border border-[#C6A87C]/40'
+                : 'museum-button'
+            }`}
+          >
+            {isSpeaking ? (
+              <>
+                <Square className="w-3.5 h-3.5 fill-current" />
+                <span>Dừng đọc thuyết minh</span>
+              </>
+            ) : (
+              <>
+                <Volume2 className="w-3.5 h-3.5 text-[#C6A87C]" />
+                <span>Nghe thuyết minh địa điểm</span>
+              </>
+            )}
+          </button>
+
+          {/* 2. GIỚI THIỆU LỊCH SỬ */}
+          <section className="space-y-2">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#C6A87C]">
+              <Landmark className="w-3.5 h-3.5" />
+              <span>Giá trị lịch sử &amp; không gian</span>
+            </div>
+            <p className="text-xs sm:text-[13px] text-[#E7E2D8] leading-relaxed">
+              {spot.historicalStory}
+            </p>
+          </section>
+
+          {/* 3. HIỆN VẬT & HẠNG MỤC TIÊU BIỂU */}
+          <section className="space-y-2.5">
+            <div className="text-xs font-semibold uppercase tracking-wider text-[#C6A87C]">
+              Hiện vật &amp; hạng mục tại khu vực
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {spot.artifactDetails.map((item, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setSelectedArtifactIdx(idx)}
+                  className={`px-2.5 py-1.5 rounded-lg text-xs transition-colors cursor-pointer border ${
+                    selectedArtifactIdx === idx
+                      ? 'bg-[#8C6747]/30 border-[#C6A87C] text-[#FAF8F5] font-medium'
+                      : 'bg-white/[0.03] border-white/10 text-[#C8C2B6] hover:border-white/25'
+                  }`}
+                >
+                  {item.name}
+                </button>
+              ))}
             </div>
 
+            {spot.artifactDetails[selectedArtifactIdx] && (
+              <div className="p-3.5 rounded-xl bg-white/[0.03] border border-[#D6CBB8]/15 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-[#F5F2EB]">
+                    {spot.artifactDetails[selectedArtifactIdx].name}
+                  </span>
+                  <span className="text-[11px] text-[#C6A87C]">
+                    {spot.artifactDetails[selectedArtifactIdx].origin}
+                  </span>
+                </div>
+                <p className="text-xs text-[#D6CFC2] leading-relaxed">
+                  {spot.artifactDetails[selectedArtifactIdx].description}
+                </p>
+              </div>
+            )}
+          </section>
+
+          {/* 4. TRÍCH DẪN & LIÊN HỆ TƯ TƯỞNG HỒ CHÍ MINH */}
+          <section className="p-4 rounded-xl bg-[#222623] border border-[#C6A87C]/25 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#C6A87C]">
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Liên hệ Tư tưởng Hồ Chí Minh</span>
+            </div>
+            <p className="text-xs sm:text-[13px] text-[#E7E2D8] leading-relaxed">
+              {spot.hcmThoughtConnection}
+            </p>
+
+            <blockquote className="pt-2 border-t border-white/10 text-xs sm:text-[13px] italic font-editorial text-[#F2E8D5] leading-relaxed">
+              {spot.keyQuote.quote}
+              <footer className="mt-1 not-italic text-[11px] font-sans text-[#B8B2A6]">
+                — {spot.keyQuote.context}
+              </footer>
+            </blockquote>
+
+            <div className="pt-1 flex flex-wrap gap-1.5">
+              {spot.coreValues.map((val, idx) => (
+                <span
+                  key={idx}
+                  className="px-2 py-0.5 rounded bg-white/[0.04] border border-[#D6CBB8]/15 text-[11px] text-[#D6CFC2]"
+                >
+                  {val}
+                </span>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* Footer điều hướng gọn nhẹ */}
+        <div className="px-5 py-3 border-t border-[#D6CBB8]/15 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
-              onClick={onOpenQuiz}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium liquid-glass-active text-amber-200 cursor-pointer"
+              onClick={() => handlePrevNext('prev')}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs museum-button cursor-pointer"
             >
-              <GraduationCap className="w-3.5 h-3.5 text-amber-300" />
-              <span>Ôn tập trắc nghiệm</span>
+              <ChevronLeft className="w-3.5 h-3.5" />
+              <span>Điểm trước</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handlePrevNext('next')}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs museum-button cursor-pointer"
+            >
+              <span>Điểm tiếp</span>
+              <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>
-        </motion.aside>
+
+          <button
+            type="button"
+            onClick={onOpenQuiz}
+            className="px-3 py-1.5 rounded-lg text-xs font-medium museum-button hover:border-[#C6A87C] text-[#E5DEC9] cursor-pointer"
+          >
+            Câu hỏi ôn tập
+          </button>
+        </div>
+      </aside>
+
+      {/* Lightbox xem ảnh tư liệu kích thước lớn */}
+      {isLightboxOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/85 flex items-center justify-center p-4"
+          onClick={() => setIsLightboxOpen(false)}
+        >
+          <div
+            className="relative max-w-4xl w-full rounded-2xl overflow-hidden bg-[#181A18] border border-[#D6CBB8]/25 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={activePhoto.url}
+              alt={spot.title}
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (!target.src.endsWith('cottage-3.jpg')) {
+                  target.src = FALLBACK_IMAGE;
+                }
+              }}
+              className="w-full max-h-[76vh] object-contain bg-black"
+            />
+            <div className="p-4 flex flex-wrap items-center justify-between gap-4">
+              <div className="max-w-2xl">
+                <h3 className="text-sm font-semibold text-[#F5F2EB]">
+                  {spot.title} ({selectedPhotoIdx + 1}/{photos.length})
+                </h3>
+                <p className="text-xs text-[#B8B2A6] mt-0.5">
+                  {activePhoto.caption}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {photos.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedPhotoIdx(
+                          (prev) => (prev - 1 + photos.length) % photos.length
+                        )
+                      }
+                      className="px-3 py-1.5 rounded-lg text-xs museum-button cursor-pointer"
+                    >
+                      Ảnh trước
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setSelectedPhotoIdx((prev) => (prev + 1) % photos.length)
+                      }
+                      className="px-3 py-1.5 rounded-lg text-xs museum-button cursor-pointer"
+                    >
+                      Ảnh tiếp
+                    </button>
+                  </>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setIsLightboxOpen(false)}
+                  className="px-3.5 py-1.5 rounded-lg text-xs museum-button cursor-pointer"
+                >
+                  Đóng ảnh
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 };
 

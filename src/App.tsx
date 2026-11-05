@@ -2,16 +2,18 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Sun,
   Moon,
-  Eye,
-  EyeOff,
+  Layers,
   Compass,
   Play,
   Pause,
-  GraduationCap,
-  Landmark,
+  BookOpenCheck,
   Check,
 } from 'lucide-react';
-import { TOUR_SPOTS, TourSpot } from './data/tourData';
+import {
+  TOUR_SPOTS,
+  TourSpot,
+  ArchitecturalViewMode,
+} from './data/tourData';
 import Scene3D from './components/Scene3D';
 import SidebarInfo from './components/SidebarInfo';
 import QuizModal from './components/QuizModal';
@@ -20,26 +22,35 @@ export const App: React.FC = () => {
   const [activeSpot, setActiveSpot] = useState<TourSpot | null>(null);
   const [visitedIds, setVisitedIds] = useState<number[]>([]);
   const [isNight, setIsNight] = useState<boolean>(false);
-  const [showRoof, setShowRoof] = useState<boolean>(true);
+  const [viewMode, setViewMode] = useState<ArchitecturalViewMode>('overview');
   const [isAutoTour, setIsAutoTour] = useState<boolean>(false);
   const [isQuizOpen, setIsQuizOpen] = useState<boolean>(false);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
 
   const handleSelectSpot = useCallback((spot: TourSpot) => {
     setActiveSpot(spot);
-    setVisitedIds((prev) => (prev.includes(spot.id) ? prev : [...prev, spot.id]));
-
-    if (spot.requiresXRayRoof) {
-      setShowRoof(false);
-    } else {
-      setShowRoof(true);
-    }
+    setVisitedIds((prev) =>
+      prev.includes(spot.id) ? prev : [...prev, spot.id]
+    );
+    setViewMode(spot.recommendedViewMode);
   }, []);
+
+  const handleSwitchViewMode = useCallback(
+    (mode: ArchitecturalViewMode) => {
+      setIsAutoTour(false);
+      setViewMode(mode);
+      if (mode === 'overview' && activeSpot?.recommendedViewMode === 'overview') {
+        setActiveSpot(null);
+      }
+      setResetTrigger((prev) => prev + 1);
+    },
+    [activeSpot]
+  );
 
   const handleOverview = useCallback(() => {
     setIsAutoTour(false);
     setActiveSpot(null);
-    setShowRoof(true);
+    setViewMode('overview');
     setResetTrigger((prev) => prev + 1);
   }, []);
 
@@ -61,7 +72,7 @@ export const App: React.FC = () => {
         setVisitedIds((prev) =>
           prev.includes(nextSpot.id) ? prev : [...prev, nextSpot.id]
         );
-        setShowRoof(!nextSpot.requiresXRayRoof);
+        setViewMode(nextSpot.recommendedViewMode);
         return nextSpot;
       });
     }, 9000);
@@ -69,11 +80,9 @@ export const App: React.FC = () => {
     return () => window.clearInterval(timer);
   }, [isAutoTour, activeSpot, handleSelectSpot]);
 
-  const progressPercent = Math.round((visitedIds.length / TOUR_SPOTS.length) * 100);
-
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#05070c] text-stone-100 select-none">
-      {/* ================= KHÔNG GIAN 3D ĐIỆN ẢNH ================= */}
+    <div className="relative w-screen h-screen overflow-hidden bg-[#161917] text-[#F5F2EB] select-none">
+      {/* KHÔNG GIAN THAM QUAN 3D TRUNG TÂM */}
       <Scene3D
         activeSpot={activeSpot}
         visitedIds={visitedIds}
@@ -82,112 +91,107 @@ export const App: React.FC = () => {
           handleSelectSpot(spot);
         }}
         isNight={isNight}
-        showRoof={showRoof}
+        viewMode={viewMode}
         resetTrigger={resetTrigger}
       />
 
-      {/* ================= TOP HEADER (LIQUID GLASS HUD) ================= */}
-      <header className="fixed top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 px-5 py-3 rounded-3xl liquid-glass shadow-[0_20px_50px_rgba(0,0,0,0.7)] border border-white/15">
-        {/* Tên Dự Án & Biểu tượng Di sản */}
-        <div className="flex items-center gap-3.5">
-          <div className="w-10 h-10 rounded-2xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-300 shadow-inner shrink-0">
-            <Landmark className="w-5 h-5 stroke-[1.8]" />
+      {/* TOP HEADER – TỐI GIẢN, TRANG NHÃ */}
+      <header className="fixed top-3 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl museum-panel">
+        <div>
+          <div className="text-[11px] font-medium text-[#C6A87C] uppercase tracking-wider">
+            Khu Di Tích Chủ Tịch Hồ Chí Minh Tại Phủ Chủ Tịch
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-cinzel tracking-widest text-amber-300/80">
-                KHÔNG GIAN DI SẢN 3D
-              </span>
-              {isAutoTour && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">
-                  Tự động dẫn tour
-                </span>
-              )}
-            </div>
-            <h1 className="text-sm sm:text-base lg:text-lg font-bold font-cormorant tracking-wide text-gold-leaf leading-tight">
-              Nhà Sàn Bác Hồ &amp; Tư Tưởng Hồ Chí Minh
-            </h1>
-          </div>
+          <h1 className="text-sm sm:text-base font-editorial font-semibold text-[#F5F2EB]">
+            Không Gian Tham Quan Nhà Sàn Bác Hồ &amp; Tư Tưởng Hồ Chí Minh
+          </h1>
         </div>
 
-        {/* Công cụ điều khiển */}
-        <div className="flex items-center flex-wrap gap-2.5">
-          {/* Thanh Tiến độ khám phá thanh lịch */}
-          <div className="hidden md:flex flex-col gap-1 px-4 py-1.5 rounded-2xl bg-white/[0.03] border border-white/10 min-w-[190px]">
-            <div className="flex items-center justify-between text-[11px] font-light">
-              <span className="text-stone-400">Đã khám phá</span>
-              <span className="text-amber-200 font-cinzel font-semibold">
-                {visitedIds.length}/{TOUR_SPOTS.length}
-              </span>
-            </div>
-            <div className="w-full h-1 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-amber-400 to-amber-200 transition-all duration-700"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
+        <div className="flex items-center flex-wrap gap-2">
+          {/* Cụm chuyển đổi 3 chế độ kiến trúc: Tổng thể / Mặt cắt Tầng 1 / Mặt cắt Tầng 2 */}
+          <div
+            className="flex items-center gap-1 p-1 rounded-lg bg-black/25 border border-[#D6CBB8]/15"
+            role="group"
+            aria-label="Chế độ xem mặt cắt kiến trúc"
+          >
+            <span className="hidden md:flex items-center gap-1 px-2 text-[11px] text-[#C6A87C]">
+              <Layers className="w-3.5 h-3.5" />
+              <span>Góc nhìn:</span>
+            </span>
+            <button
+              type="button"
+              onClick={() => handleSwitchViewMode('overview')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === 'overview'
+                  ? 'museum-button-active'
+                  : 'text-[#D6CFC2] hover:text-white hover:bg-white/5'
+              }`}
+              title="Hiển thị đầy đủ mái ngói và toàn cảnh kiến trúc Nhà sàn"
+            >
+              Tổng thể
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchViewMode('floor1')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === 'floor1'
+                  ? 'museum-button-active'
+                  : 'text-[#D6CFC2] hover:text-white hover:bg-white/5'
+              }`}
+              title="Cắt lớp kiến trúc trên để quan sát rõ Phòng họp Bộ Chính trị tại Tầng 1"
+            >
+              Mặt cắt Tầng 1
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSwitchViewMode('floor2')}
+              className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors cursor-pointer ${
+                viewMode === 'floor2'
+                  ? 'museum-button-active'
+                  : 'text-[#D6CFC2] hover:text-white hover:bg-white/5'
+              }`}
+              title="Mở mặt cắt mái ngói và hạ vách gỗ để quan sát rõ Phòng làm việc và Phòng ngủ Tầng 2"
+            >
+              Mặt cắt Tầng 2
+            </button>
           </div>
 
-          {/* Nút Bật/Tắt Mặt cắt Nội thất Tầng 2 */}
-          <button
-            type="button"
-            onClick={() => setShowRoof((prev) => !prev)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-medium cursor-pointer transition-all ${
-              !showRoof ? 'liquid-glass-active text-amber-200' : 'liquid-glass-pill text-stone-300'
-            }`}
-            title="Mở mái để nhìn nội thất phòng làm việc và phòng ngủ tầng 2"
-          >
-            {!showRoof ? (
-              <>
-                <Eye className="w-3.5 h-3.5 text-amber-300" />
-                <span>Nội thất Tầng 2 (Mở)</span>
-              </>
-            ) : (
-              <>
-                <EyeOff className="w-3.5 h-3.5 text-stone-400" />
-                <span>Xem nội thất Tầng 2</span>
-              </>
-            )}
-          </button>
-
-          {/* Nút Chế độ Ngày / Đêm */}
+          {/* Nút Ánh sáng Ngày / Đêm */}
           <button
             type="button"
             onClick={() => setIsNight((prev) => !prev)}
-            className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-medium cursor-pointer transition-all ${
-              isNight ? 'liquid-glass-active text-amber-200' : 'liquid-glass-pill text-stone-300'
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium cursor-pointer ${
+              isNight ? 'museum-button-active' : 'museum-button'
             }`}
-            title="Chuyển đổi ánh sáng Ngày / Đêm"
           >
             {isNight ? (
               <>
-                <Moon className="w-3.5 h-3.5 text-indigo-300" />
-                <span>Ban đêm</span>
+                <Moon className="w-3.5 h-3.5" />
+                <span>Chiều tối</span>
               </>
             ) : (
               <>
-                <Sun className="w-3.5 h-3.5 text-amber-300" />
+                <Sun className="w-3.5 h-3.5 text-[#C6A87C]" />
                 <span>Ban ngày</span>
               </>
             )}
           </button>
 
-          {/* Nút Mở Trắc nghiệm */}
+          {/* Nút Mở Câu hỏi Ôn tập */}
           <button
             type="button"
             onClick={() => {
               setIsAutoTour(false);
               setIsQuizOpen(true);
             }}
-            className="flex items-center gap-2 px-4 py-2 rounded-2xl text-xs font-medium liquid-glass-active text-amber-100 cursor-pointer shadow-lg"
+            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-xs font-medium museum-button hover:border-[#C6A87C] cursor-pointer"
           >
-            <GraduationCap className="w-4 h-4 text-amber-300" />
-            <span>Trắc nghiệm tư tưởng</span>
+            <BookOpenCheck className="w-3.5 h-3.5 text-[#C6A87C]" />
+            <span>Ôn tập ({visitedIds.length}/{TOUR_SPOTS.length})</span>
           </button>
         </div>
       </header>
 
-      {/* ================= DRAWER THÔNG TIN DI SẢN ================= */}
+      {/* BẢNG THUYẾT MINH THEO NGỮ CẢNH (Chỉ hiển thị khi người dùng chọn một địa điểm) */}
       <SidebarInfo
         spot={activeSpot}
         onClose={() => setActiveSpot(null)}
@@ -201,46 +205,43 @@ export const App: React.FC = () => {
         }}
       />
 
-      {/* ================= BOTTOM DOCK (LIQUID GLASS CAPSULE) ================= */}
-      <nav className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 max-w-[95vw] flex items-center gap-2 px-3 py-2 rounded-3xl liquid-glass shadow-[0_20px_50px_rgba(0,0,0,0.8)] border border-white/15 overflow-x-auto">
+      {/* BOTTOM NAVIGATION – ĐIỀU HƯỚNG CÁC ĐỊA ĐIỂM TRONG KHU DI TÍCH */}
+      <nav className="fixed bottom-3 left-1/2 -translate-x-1/2 z-20 max-w-[96vw] flex items-center gap-1.5 px-2.5 py-2 rounded-xl museum-panel overflow-x-auto">
         <button
           type="button"
           onClick={handleOverview}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
-            activeSpot === null && !isAutoTour
-              ? 'liquid-glass-active text-amber-200'
-              : 'liquid-glass-pill text-stone-300'
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 cursor-pointer ${
+            activeSpot === null && viewMode === 'overview' && !isAutoTour
+              ? 'museum-button-active'
+              : 'museum-button'
           }`}
         >
-          <Compass className="w-3.5 h-3.5 text-amber-300" />
+          <Compass className="w-3.5 h-3.5" />
           <span>Toàn cảnh</span>
         </button>
 
         <button
           type="button"
           onClick={() => setIsAutoTour((prev) => !prev)}
-          className={`flex items-center gap-1.5 px-3.5 py-2 rounded-2xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
-            isAutoTour
-              ? 'liquid-glass-active text-emerald-200'
-              : 'liquid-glass-pill text-stone-300'
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 cursor-pointer ${
+            isAutoTour ? 'museum-button-active' : 'museum-button'
           }`}
         >
           {isAutoTour ? (
             <>
               <Pause className="w-3 h-3 fill-current" />
-              <span>Tạm dừng</span>
+              <span>Dừng dẫn tour</span>
             </>
           ) : (
             <>
-              <Play className="w-3 h-3 fill-current text-amber-300" />
-              <span>Tự động tour</span>
+              <Play className="w-3 h-3 fill-current text-[#C6A87C]" />
+              <span>Tự động dẫn tour</span>
             </>
           )}
         </button>
 
-        <div className="h-5 w-px bg-white/10 mx-1 shrink-0" />
+        <div className="h-4 w-px bg-[#D6CBB8]/20 mx-1 shrink-0" />
 
-        {/* 5 Nút chuyển nhanh theo từng điểm di sản */}
         {TOUR_SPOTS.map((spot) => {
           const isSelected = activeSpot?.id === spot.id;
           const isVisited = visitedIds.includes(spot.id);
@@ -253,35 +254,31 @@ export const App: React.FC = () => {
                 setIsAutoTour(false);
                 handleSelectSpot(spot);
               }}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-2xl text-xs font-medium transition-all shrink-0 cursor-pointer ${
-                isSelected
-                  ? 'liquid-glass-active text-amber-100 font-semibold'
-                  : isVisited
-                  ? 'liquid-glass-pill text-emerald-300'
-                  : 'liquid-glass-pill text-stone-300'
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium shrink-0 cursor-pointer ${
+                isSelected ? 'museum-button-active' : 'museum-button'
               }`}
             >
               <span
-                className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-cinzel font-bold ${
+                className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-semibold ${
                   isSelected
-                    ? 'bg-amber-400 text-slate-950'
+                    ? 'bg-white text-[#5C3D24]'
                     : isVisited
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'bg-white/10 text-stone-300'
+                    ? 'bg-[#2D4A38] text-[#A7D7B8]'
+                    : 'bg-white/10 text-[#E5DEC9]'
                 }`}
               >
                 {spot.id}
               </span>
-              <span className="hidden sm:inline font-normal">{spot.shortLabel}</span>
-              {isVisited && (
-                <Check className="w-3 h-3 text-emerald-400 stroke-[2.5]" />
+              <span className="hidden sm:inline">{spot.shortLabel}</span>
+              {isVisited && !isSelected && (
+                <Check className="w-3 h-3 text-[#78B890] stroke-[2.5]" />
               )}
             </button>
           );
         })}
       </nav>
 
-      {/* ================= MODAL TRẮC NGHIỆM ================= */}
+      {/* MODAL ÔN TẬP KIẾN THỨC */}
       <QuizModal
         isOpen={isQuizOpen}
         onClose={() => setIsQuizOpen(false)}

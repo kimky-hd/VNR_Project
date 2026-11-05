@@ -1,7 +1,14 @@
+export type ArchitecturalViewMode = 'overview' | 'floor1' | 'floor2';
+
 export interface ArtifactDetail {
   name: string;
   origin: string;
   description: string;
+}
+
+export interface GalleryImage {
+  url: string;
+  caption: string;
 }
 
 export interface TourSpot {
@@ -9,29 +16,35 @@ export interface TourSpot {
   shortLabel: string;
   title: string;
   subtitle: string;
-  floor: 'Khuôn viên' | 'Tầng 1' | 'Tầng 2';
-  /** Tọa độ điểm neo Hotspot 3D trong không gian */
+  zone: string;
+  /** Chế độ mặt cắt kiến trúc tương ứng khi chọn điểm này */
+  recommendedViewMode: ArchitecturalViewMode;
+  /** Tọa độ điểm đánh dấu 3D */
   position: [number, number, number];
-  /** Tọa độ đặt máy quay khi bay tới điểm này */
+  /** Tọa độ Camera khi di chuyển tới địa điểm */
   cameraPos: [number, number, number];
-  /** Điểm nhìn (LookAt Target) của CameraControls */
+  /** Điểm nhìn (Target) của Camera */
   cameraTarget: [number, number, number];
-  /** Tự động kích hoạt chế độ X-Ray mở mái khi xem nội thất tầng 2 */
-  requiresXRayRoof: boolean;
-  /** Danh sách hiện vật tiêu biểu */
+  /** Ảnh thực tế chính */
+  imageUrl: string;
+  /** Chú thích ảnh chính */
+  imageCaption: string;
+  /** Bộ sưu tập ảnh thực tế đã kiểm chứng */
+  gallery: GalleryImage[];
+  /** Danh sách hiện vật / công trình tiêu biểu */
   artifacts: string[];
-  /** Chi tiết từng hiện vật tiêu biểu */
+  /** Chi tiết từng hiện vật / hạng mục */
   artifactDetails: ArtifactDetail[];
-  /** Câu chuyện lịch sử */
+  /** Câu chuyện lịch sử xác thực */
   historicalStory: string;
   /** Liên hệ Tư tưởng Hồ Chí Minh */
   hcmThoughtConnection: string;
-  /** Trích dẫn nổi bật của Chủ tịch Hồ Chí Minh */
+  /** Trích dẫn tiêu biểu */
   keyQuote: {
     quote: string;
     context: string;
   };
-  /** Từ khóa lý luận cốt lõi */
+  /** Từ khóa giá trị cốt lõi */
   coreValues: string[];
 }
 
@@ -46,113 +59,227 @@ export interface QuizQuestion {
   explanation: string;
 }
 
-export const OVERVIEW_CAMERA: {
-  position: [number, number, number];
-  target: [number, number, number];
-} = {
-  position: [14.5, 9.8, 16.5],
-  target: [0, 2.0, 0.5],
+/** Góc nhìn chuẩn cho 3 chế độ kiến trúc */
+export const VIEW_MODE_CAMERAS: Record<
+  ArchitecturalViewMode,
+  { position: [number, number, number]; target: [number, number, number] }
+> = {
+  overview: {
+    position: [13.2, 8.2, 16.8],
+    target: [-0.4, 1.2, 2.0],
+  },
+  floor1: {
+    position: [4.8, 3.8, 5.2],
+    target: [0.2, 0.9, -0.4],
+  },
+  floor2: {
+    position: [0.0, 6.4, 4.8],
+    target: [0.0, 2.85, -0.55],
+  },
 };
+
+export const OVERVIEW_CAMERA = VIEW_MODE_CAMERAS.overview;
 
 export const TOUR_SPOTS: TourSpot[] = [
   {
     id: 1,
-    shortLabel: 'Khuôn viên & Ao cá',
-    title: 'Khuôn viên Vườn cây, Hàng Dâm Bụt & Ao Cá Bác Hồ',
-    subtitle: 'Không gian sinh thái văn hóa & Cội nguồn dân tộc',
-    floor: 'Khuôn viên',
-    position: [0, 0.9, 5.8],
-    cameraPos: [6.8, 4.2, 11.8],
-    cameraTarget: [0, 0.8, 4.2],
-    requiresXRayRoof: false,
+    shortLabel: 'Ao cá Bác Hồ',
+    title: 'Ao Cá Bác Hồ, Cầu Ao & Cảnh Quan Quanh Hồ',
+    subtitle: 'Không gian mặt nước tự nhiên phía trước Nhà sàn & Tâm hồn hòa hợp thiên nhiên',
+    zone: 'Khu vực Ao cá & Vườn cây',
+    recommendedViewMode: 'overview',
+    position: [0.2, 0.45, 5.5],
+    cameraPos: [4.8, 3.4, 12.6],
+    cameraTarget: [0.0, 0.3, 4.2],
+    imageUrl: './images/heritage/cottage-3.jpg',
+    imageCaption:
+      'Toàn cảnh Ao cá Bác Hồ nhìn về phía Nhà sàn với mặt hồ tự nhiên, bậc cầu ao sơn vàng kem, hàng rào dâm bụt và hàng cây cổ thụ quét vôi trắng.',
+    gallery: [
+      {
+        url: './images/heritage/cottage-3.jpg',
+        caption:
+          'Mặt nước Ao cá Bác Hồ, bậc cầu ao bên trái và Nhà sàn ẩn dưới tán cây xanh.',
+      },
+      {
+        url: './images/heritage/nha-san-can-canh.jpg',
+        caption:
+          'Bờ Ao cá Bác Hồ uốn lượn với hàng lan can vàng kem phía trước Nhà 54.',
+      },
+      {
+        url: './images/heritage/nha-san-toan-canh.jpg',
+        caption:
+          'Lối đi lát gạch từ bờ Ao cá qua hàng dâm bụt dẫn vào chính diện Nhà sàn Bác Hồ.',
+      },
+    ],
     artifacts: [
-      'Ao cá Bác Hồ',
-      'Cây vú sữa miền Nam',
-      'Hàng rào dâm bụt',
-      'Tổng thể kiến trúc nhà sàn Việt Bắc',
+      'Ao cá Bác Hồ (diện tích hơn 3.300m²)',
+      'Bậc cầu ao nơi Bác vỗ tay gọi cá',
+      'Hàng rào dâm bụt & Rễ cây bụt mọc ven hồ',
+      'Cây vú sữa miền Nam bên hông Nhà sàn',
     ],
     artifactDetails: [
       {
-        name: 'Ao cá Bác Hồ',
-        origin: 'Khuôn viên trước Nhà sàn (1958)',
+        name: 'Ao cá Bác Hồ & Cầu ao',
+        origin: 'Phía trước Nhà sàn Bác Hồ',
         description:
-          'Sau giờ làm việc căng thẳng, Bác thường ra bờ ao vỗ tay gọi cá ăn. Đàn cá quen tiếng vỗ tay của Người lại quẫy nước bơi về gần bờ.',
+          'Từ một đầm nước tù đọng, Bác đã cùng anh em cải tạo thành ao nuôi nhiều giống cá (cá chép, cá trắm, cá mè, cá rô phi...). Mỗi chiều sau giờ làm việc, Bác thường ra bậc cầu ao vỗ tay gọi cá lên ăn.',
+      },
+      {
+        name: 'Hàng rào dâm bụt & Rễ cây bụt mọc',
+        origin: 'Ven bờ Ao cá và lối vào Nhà sàn',
+        description:
+          'Quanh bờ ao là những chùm rễ cây bụt mọc nhô lên mặt đất và hàng dâm bụt gợi nhớ quê hương Làng Sen, Nghệ An.',
       },
       {
         name: 'Cây vú sữa miền Nam',
-        origin: 'Đồng bào miền Nam gửi tặng (1954)',
+        origin: 'Đồng bào miền Nam kính tặng (1954)',
         description:
-          'Được đặt ngay bên hông nhà sàn như hình ảnh đồng bào miền Nam ruột thịt luôn ở trong trái tim Người, được Bác tự tay chăm tưới mỗi ngày.',
-      },
-      {
-        name: 'Hàng rào dâm bụt',
-        origin: 'Hình ảnh quê hương Làng Sen, Nghệ An',
-        description:
-          'Loài cây mộc mạc gắn liền với ký ức tuổi thơ nơi làng Chùa, làng Sen xứ Nghệ, giữ trọn hồn quê Việt Nam giữa lòng Thủ đô.',
-      },
-      {
-        name: 'Kiến trúc Nhà sàn Việt Bắc',
-        origin: 'Thiết kế cùng KTS Nguyễn Văn Ninh (Tháng 5/1958)',
-        description:
-          'Phỏng theo kiểu nhà sàn của đồng bào dân tộc Tày - Thái ở chiến khu Việt Bắc, kết hợp hài hòa ánh sáng, gió trời và cây cỏ.',
+          'Trồng bên hông Nhà sàn, được Bác chăm sóc hàng ngày như biểu tượng của miền Nam ruột thịt luôn ở trong trái tim Người.',
       },
     ],
     historicalStory:
-      'Hoàn thành tháng 5/1958. Sau khi tiếp quản Thủ đô, Bác Hồ từ chối ở tại dinh thự Toàn quyền Đông Dương nguy nga tráng lệ để chọn ngôi nhà sàn gỗ giản dị bên bờ ao, hòa mình với thiên nhiên và gần gũi với đồng bào. Tại đây, Người đã sống và làm việc trong 11 năm cuối đời (1958 – 1969).',
+      'Ao cá nằm ngay phía trước Nhà sàn Bác Hồ, có bờ ao uốn lượn tự nhiên dưới bóng cây cổ thụ, kết nối hài hòa giữa mặt nước, vườn cây và kiến trúc gỗ. Sinh thời, sau mỗi ngày làm việc, Bác thường ra bậc cầu ao vỗ tay cho cá ăn. Tiếng vỗ tay quen thuộc của Người đã trở thành phản xạ tự nhiên khiến đàn cá từ khắp mặt hồ bơi về quây quần.',
     hcmThoughtConnection:
-      'Phản ánh cơ sở hình thành Tư tưởng Hồ Chí Minh từ truyền thống văn hóa tốt đẹp của dân tộc và nhân tố chủ quan là phẩm chất, tâm hồn của một nhà yêu nước chân chính gắn bó máu thịt với nhân dân. Về văn hóa, không gian sống thể hiện rõ tính dân tộc và tính đại chúng của nền văn hóa mới: giản dị, nhân văn, tôn trọng tự nhiên và không xa rời cội nguồn dân족.',
+      'Phản ánh cơ sở hình thành Tư tưởng Hồ Chí Minh từ truyền thống văn hóa tốt đẹp của dân tộc Việt Nam và phẩm chất nhân văn cao đẹp của Người. Không gian Ao cá – Vườn cây – Nhà sàn thể hiện quan điểm về mối quan hệ hài hòa giữa con người với thiên nhiên, cùng tính dân tộc và tính đại chúng trong văn hóa.',
     keyQuote: {
       quote:
         '“Ngôi nhà sàn của Bác vẻn vẹn chỉ có vài phòng, trong lúc tâm hồn của Bác lộng gió thời đại.”',
       context: 'Thủ tướng Phạm Văn Đồng viết về Chủ tịch Hồ Chí Minh',
     },
     coreValues: [
-      'Truyền thống dân tộc',
-      'Tính dân tộc & Đại chúng',
       'Hòa hợp thiên nhiên',
-      'Gắn bó máu thịt với nhân dân',
+      'Cội nguồn văn hóa dân tộc',
+      'Tình cảm Bắc – Nam thống nhất',
+      'Phong cách sống giản dị',
     ],
   },
   {
     id: 2,
-    shortLabel: 'Phòng họp Bộ Chính trị',
-    title: 'Tầng 1: Phòng Họp Bộ Chính Trị & Chiếc Điện Thoại',
-    subtitle: 'Nhà nước của nhân dân, do nhân dân, vì nhân dân',
-    floor: 'Tầng 1',
-    position: [-0.2, 1.45, 0.2],
-    cameraPos: [5.4, 2.35, 5.2],
-    cameraTarget: [-0.2, 1.0, 0.0],
-    requiresXRayRoof: false,
+    shortLabel: 'Đường Xoài, Nhà 54 & 67',
+    title: 'Đường Xoài, Nhà 54 & Nhà 67 trong Quần Thể Khu Di Tích',
+    subtitle: 'Dấu ấn 15 năm Bác Hồ sống và làm việc tại Khu Phủ Chủ tịch (1954 – 1969)',
+    zone: 'Quần thể kiến trúc quanh Nhà sàn',
+    recommendedViewMode: 'overview',
+    position: [-6.4, 1.4, 2.0],
+    cameraPos: [-11.2, 4.8, 8.6],
+    cameraTarget: [-5.2, 1.1, 0.6],
+    imageUrl: './images/heritage/nha-san-can-canh.jpg',
+    imageCaption:
+      'Ngôi Nhà 54 màu vàng kem và hàng lan can uốn cong dọc bờ Ao cá Bác Hồ nối liền với Đường Xoài.',
+    gallery: [
+      {
+        url: './images/heritage/nha-san-can-canh.jpg',
+        caption:
+          'Toàn cảnh Nhà 54 soi bóng xuống mặt nước Ao cá Bác Hồ và đầu Đường Xoài.',
+      },
+      {
+        url: './images/heritage/nha-54.jpg',
+        caption:
+          'Mặt trước ngôi Nhà 54 – nơi Bác Hồ ở và làm việc từ tháng 12/1954 đến tháng 5/1958.',
+      },
+      {
+        url: './images/heritage/vuon-cay-duong-xoai.jpg',
+        caption:
+          'Không gian vườn cây cổ thụ xanh mát bao quanh Nhà sàn và khu Nhà 67.',
+      },
+    ],
     artifacts: [
-      'Bàn họp gỗ dài',
-      'Bộ ghế mây thoáng mát',
-      'Điện thoại bàn cổ điển màu đen',
-      'Máy đánh chữ',
+      'Đường Xoài lịch sử dọc bờ Ao cá',
+      'Nhà 54 (nơi Bác ở giai đoạn 1954 – 1958)',
+      'Nhà 67 (nơi Bác điều trị bệnh năm 1969)',
+      'Lan can bờ ao trước Nhà 54',
     ],
     artifactDetails: [
       {
-        name: 'Bàn họp Bộ Chính trị & 8 ghế mây',
-        origin: 'Trung tâm Tầng 1 Nhà sàn',
+        name: 'Nhà 54',
+        origin: 'Giai đoạn 12/1954 – 5/1958',
         description:
-          'Nơi Bác Hồ cùng các đồng chí trong Bộ Chính trị họp bàn những quyết sách lịch sử giai đoạn xây dựng CNXH ở miền Bắc và đấu tranh thống nhất miền Nam.',
+          'Vốn là ngôi nhà của người thợ điện phục vụ Phủ Toàn quyền cũ. Bác chọn ở đây thay vì tòa Dinh thự lớn. Dù chuyển sang Nhà sàn năm 1958, Bác vẫn dùng cơm và kiểm tra sức khỏe tại Nhà 54 đến năm 1969.',
       },
       {
-        name: 'Chiếc điện thoại bàn màu đen',
-        origin: 'Đặt ở góc bàn tầng 1',
+        name: 'Đường Xoài',
+        origin: 'Trục đường nối Nhà 54 dọc bờ Ao cá tới Nhà sàn',
         description:
-          'Phương tiện thông tin trực tiếp kết nối Bác với Bộ Tổng Tư lệnh, Bộ Tư lệnh Phòng không - Không quân để nắm bắt kịp thời tình hình chiến sự.',
+          'Con đường rợp bóng những cây xoài cổ thụ chạy dọc bờ Ao cá, nơi Bác đi bộ, tập thể dục mỗi sáng và đón tiếp khách quý.',
       },
       {
-        name: 'Máy đánh chữ',
-        origin: 'Hiện vật làm việc thường trực',
+        name: 'Nhà 67',
+        origin: 'Xây dựng năm 1967 phía sau Nhà sàn',
         description:
-          'Dùng để soạn thảo nhanh các bức điện khẩn, thư khen ngợi chiến sĩ, đồng bào và chỉ thị công tác cách mạng.',
+          'Ngôi nhà kiên cố do Bộ Chính trị xây dựng để bảo vệ Bác trong những năm chiến tranh phá hoại của không quân Mỹ, cũng là nơi Bác qua đời lúc 9 giờ 47 phút ngày 2/9/1969.',
       },
     ],
     historicalStory:
-      'Tầng 1 nhà sàn là không gian mở hoàn toàn không có tường bao kín, nơi Bác cùng Bộ Chính trị họp bàn các quyết sách chiến lược của cách mạng Việt Nam, tiếp đón các đoàn khách quốc tế, đại biểu anh hùng chiến sĩ thi đua, các cháu thiếu nhi và trực tiếp nghe báo cáo từ các chiến trường qua chiếc điện thoại đặt trên góc bàn.',
+      'Tháng 12/1954, khi trở về Thủ đô Hà Nội, Chủ tịch Hồ Chí Minh kiên quyết dành tòa Phủ Toàn quyền Đông Dương làm nơi làm việc của Chính phủ và đón tiếp khách ngoại giao, còn mình chỉ ở tại ngôi Nhà 54 nhỏ bé bên bờ ao, đi lại trên Đường Xoài rợp bóng mát dẫn sang Nhà sàn (1958) và Nhà 67 (1967).',
     hcmThoughtConnection:
-      'Thể hiện Tư tưởng Hồ Chí Minh về Nhà nước của nhân dân, do nhân dân, vì nhân dân. Bác khẳng định cán bộ nhà nước không phải là "quan cách mạng" mà là "công bộc, đầy tớ" của nhân dân, là "người lính vâng mệnh lệnh của quốc dân ra mặt trận". Không gian tầng 1 mở thoáng 4 bề tượng trưng cho nhà nước minh bạch, gần dân, kiên quyết phòng chống "giặc nội xâm" (tham ô, lãng phí, quan liêu, đặc quyền đặc lợi).',
+      'Khẳng định tư tưởng xuyên suốt của Hồ Chí Minh về bản chất của Đảng cầm quyền và Nhà nước cách mạng: quyền lực thuộc về nhân dân, người đứng đầu nhà nước tuyệt đối không màng danh lợi hay hưởng thụ cá nhân, đặt lợi ích của Tổ quốc và nhân dân lên trên hết.',
+    keyQuote: {
+      quote:
+        '“Cả đời tôi chỉ có một mục đích, là phấn đấu cho quyền lợi Tổ quốc, và hạnh phúc của quốc dân.”',
+      context: 'Chủ tịch Hồ Chí Minh trả lời báo chí (Năm 1946)',
+    },
+    coreValues: [
+      'Phụng sự Tổ quốc và Nhân dân',
+      'Khiêm tốn & Tiết kiệm',
+      'Gắn bó với tập thể',
+      'Chí công vô tư',
+    ],
+  },
+  {
+    id: 3,
+    shortLabel: 'Tầng 1: Phòng họp',
+    title: 'Tầng 1 Nhà Sàn: Phòng Họp Bộ Chính Trị',
+    subtitle: 'Không gian mở minh bạch – Nhà nước của nhân dân, do nhân dân, vì nhân dân',
+    zone: 'Tầng 1 Nhà sàn Bác Hồ',
+    recommendedViewMode: 'floor1',
+    position: [-0.25, 1.15, -0.5],
+    cameraPos: [4.4, 3.5, 4.6],
+    cameraTarget: [-0.2, 0.85, -0.5],
+    imageUrl: './images/heritage/tang-1-phong-hop.jpg',
+    imageCaption:
+      'Không gian Tầng 1 Nhà sàn Bác Hồ với bàn họp Bộ Chính trị, chiếc ghế mây đầu bàn và bục ngồi xi-măng mặt gỗ bao quanh.',
+    gallery: [
+      {
+        url: './images/heritage/tang-1-phong-hop.jpg',
+        caption:
+          'Bàn họp Bộ Chính trị, hàng ghế gỗ, chiếc ghế mây đầu bàn và bục ngồi mặt gỗ tại Tầng 1.',
+      },
+      {
+        url: './images/heritage/ao-ca-bac-ho.jpg',
+        caption:
+          'Tầng 1 nhìn từ bên ngoài với bể cá vàng nhỏ đặt ở cột góc phải và các tấm mành trúc.',
+      },
+    ],
+    artifacts: [
+      'Bàn họp Bộ Chính trị bằng gỗ',
+      'Chiếc ghế mây đầu bàn & hàng ghế gỗ',
+      'Chiếc điện thoại bàn & Máy đánh chữ',
+      'Bể cá vàng nhỏ ở cột góc phải',
+    ],
+    artifactDetails: [
+      {
+        name: 'Bàn họp Bộ Chính trị & Ghế mây',
+        origin: 'Trung tâm Tầng 1 Nhà sàn',
+        description:
+          'Nơi Bác cùng các đồng chí trong Bộ Chính trị họp bàn những quyết sách trọng đại về xây dựng miền Bắc XHCN và đấu tranh giải phóng miền Nam.',
+      },
+      {
+        name: 'Bục xi-măng mặt gỗ bao quanh',
+        origin: 'Xung quanh hàng cột tầng 1',
+        description:
+          'Bác dặn thiết kế bục ngồi rộng quanh tầng 1 để mỗi khi các cháu thiếu nhi hay đoàn đại biểu đồng bào các dân tộc vào thăm có chỗ ngồi quây quần bên Bác.',
+      },
+      {
+        name: 'Chiếc điện thoại làm việc trực chiến',
+        origin: 'Đặt trên bàn tầng 1',
+        description:
+          'Kết nối trực tiếp với Bộ Tổng Tư lệnh và Quân chủng Phòng không – Không quân để Bác nắm tình hình chiến trường từng giờ.',
+      },
+    ],
+    historicalStory:
+      'Hoàn thành ngày 17/5/1958, tầng 1 Nhà sàn được thiết kế hoàn toàn mở bốn phía, đón gió mát từ Ao cá thổi vào. Đây vừa là phòng họp của Bộ Chính trị, vừa là nơi Bác thân mật tiếp đón các đoàn đại biểu anh hùng, chiến sĩ thi đua, khách quốc tế và các cháu thiếu nhi.',
+    hcmThoughtConnection:
+      'Thể hiện Tư tưởng Hồ Chí Minh về Nhà nước của nhân dân, do nhân dân, vì nhân dân. Bác khẳng định cán bộ nhà nước không phải là "quan cách mạng" mà là "công bộc, đầy tớ" của nhân dân. Không gian tầng 1 mở thoáng 4 bề là biểu tượng cho một chính phủ minh bạch, gần dân, kiên quyết chống "giặc nội xâm" (tham ô, lãng phí, quan liêu).',
     keyQuote: {
       quote:
         '“Việc gì lợi cho dân, ta phải hết sức làm. Việc gì hại đến dân, ta phải hết sức tránh. Chúng ta phải yêu dân, kính dân thì dân mới yêu ta, kính ta.”',
@@ -161,49 +288,58 @@ export const TOUR_SPOTS: TourSpot[] = [
     coreValues: [
       'Nhà nước của dân, do dân, vì dân',
       'Cán bộ là công bộc của dân',
-      'Minh bạch & Gần dân',
-      'Chống tham ô, lãng phí, quan liêu',
+      'Dân chủ & Minh bạch',
+      'Phòng chống tham ô, quan liêu',
     ],
   },
   {
-    id: 3,
-    shortLabel: 'Đôi dép cao su',
-    title: 'Chân Cầu Thang Gỗ: Đôi Dép Cao Su Huyền Thoại',
-    subtitle: 'Biểu tượng Đạo đức Cách mạng: Cần, Kiệm, Liêm, Chính',
-    floor: 'Tầng 1',
-    position: [2.85, 1.35, 1.2],
-    cameraPos: [6.2, 2.2, 3.8],
-    cameraTarget: [2.7, 1.15, 0.8],
-    requiresXRayRoof: false,
+    id: 4,
+    shortLabel: 'Cầu thang & Đôi dép',
+    title: 'Chân Cầu Thang Gỗ & Đôi Dép Cao Su Huyền Thoại',
+    subtitle: 'Chuẩn mực Đạo đức Cách mạng: Cần, Kiệm, Liêm, Chính, Chí công vô tư',
+    zone: 'Lối lên Tầng 2 Nhà sàn',
+    recommendedViewMode: 'floor1',
+    position: [2.85, 1.15, 0.6],
+    cameraPos: [5.6, 2.8, 3.8],
+    cameraTarget: [2.5, 0.95, 0.2],
+    imageUrl: './images/heritage/cottage-2.jpg',
+    imageCaption:
+      'Hành lang tầng 1 và lối cầu thang gỗ dẫn lên tầng 2 tại Nhà sàn Bác Hồ.',
+    gallery: [
+      {
+        url: './images/heritage/cottage-2.jpg',
+        caption:
+          'Hành lang tầng 1 lát xi-măng phẳng phiu và hệ cột gỗ lim vững chãi.',
+      },
+      {
+        url: './images/heritage/ao-ca-nha-san.jpg',
+        caption:
+          'Cầu thang gỗ mộc dẫn lên hành lang tầng 2 Nhà sàn Bác Hồ.',
+      },
+    ],
     artifacts: [
-      'Đôi dép cao su cắt từ lốp xe quân sự Pháp',
-      'Chiếc mũ cối',
+      'Đôi dép cao su cắt từ lốp xe quân sự (1947)',
       'Cầu thang gỗ mộc dẫn lên tầng 2',
+      'Chiếc mũ cối gắn liền các chuyến công tác',
     ],
     artifactDetails: [
       {
         name: 'Đôi dép cao su bốn quai',
         origin: 'Chiến khu Việt Bắc (Năm 1947)',
         description:
-          'Được cắt từ chiếc lốp xe ô tô quân sự của thực dân Pháp bị bộ đội ta phục kích tại Đèo Khế. Khi quai dép mòn tuột, Bác cho đóng đinh sửa lại để dùng tiếp.',
+          'Được cắt từ lốp xe ô tô quân sự Pháp thu được tại Đèo Khế. Đôi dép đã cùng Bác đi khắp các chiến dịch và cả trong những chuyến thăm chính thức nước ngoài.',
       },
       {
-        name: 'Chiếc mũ cối giản dị',
-        origin: 'Vật dụng gắn liền các chuyến đi thực tế',
+        name: 'Cầu thang gỗ Nhà sàn',
+        origin: 'Thiết kế truyền thống nhà sàn Việt Bắc',
         description:
-          'Luôn được đặt ngay ngắn cạnh chân cầu thang để bất cứ lúc nào Bác cũng sẵn sàng lên đường đi thăm đồng bào, chiến sĩ.',
-      },
-      {
-        name: 'Cầu thang gỗ mộc',
-        origin: 'Lối lên tầng 2 Nhà sàn',
-        description:
-          'Gồm những bậc gỗ chắc chắn, có tay vịn nhẵn bóng theo dấu thời gian, kết nối không gian hội họp tầng 1 với nơi ở và làm việc tầng 2.',
+          'Kết nối không gian làm việc chung ở tầng 1 với không gian nghiên cứu, nghỉ ngơi tĩnh lặng ở tầng 2.',
       },
     ],
     historicalStory:
-      'Đôi dép cao su ra đời năm 1947 tại chiến khu Việt Bắc, đã cùng Bác vượt suối băng rừng đi khắp các chiến dịch kháng chiến, thăm đồng bào công - nông - binh và theo chân Người trong cả những chuyến công du quốc tế đến Ấn Độ, Liên Xô, Trung Quốc... như một biểu tượng bất hủ về phong cách sống thanh cao, giản dị.',
+      'Đôi dép cao su ra đời năm 1947 tại chiến khu Việt Bắc đã gắn bó với Bác Hồ suốt hơn hai thập kỷ. Khi quai dép mòn tuột, Bác bảo các đồng chí phục vụ đóng đinh sửa lại để dùng tiếp, trở thành biểu tượng xúc động về đức tính tiết kiệm và thanh cao của vị lãnh tụ.',
     hcmThoughtConnection:
-      'Minh chứng sống động cho Tư tưởng Hồ Chí Minh về Đạo đức, trọng tâm là chuẩn mực "Cần, kiệm, liêm, chính, chí công vô tư". Bác dạy đạo đức là gốc của người cách mạng: "Cũng như sông thì có nguồn mới có nước, không có nguồn thì sông cạn. Cây phải có gốc, không có gốc thì cây héo. Người cách mạng phải có đạo đức, không có đạo đức thì dù tài giỏi mấy cũng không lãnh đạo được nhân dân".',
+      'Minh chứng sống động cho Tư tưởng Hồ Chí Minh về Đạo đức cách mạng với chuẩn mực cốt lõi "Cần, kiệm, liêm, chính, chí công vô tư". Bác chỉ rõ đạo đức là cái gốc của người cách mạng: không có đạo đức thì dù tài giỏi mấy cũng không lãnh đạo được nhân dân.',
     keyQuote: {
       quote:
         '“Cũng như sông thì có nguồn mới có nước, không có nguồn thì sông cạn. Cây phải có gốc, không có gốc thì cây héo. Người cách mạng phải có đạo đức, không có đạo đức thì dù tài giỏi mấy cũng không lãnh đạo được nhân dân.”',
@@ -213,112 +349,129 @@ export const TOUR_SPOTS: TourSpot[] = [
       'Cần, Kiệm, Liêm, Chính',
       'Chí công vô tư',
       'Đạo đức là gốc của cách mạng',
-      'Giản dị & Khiêm tốn',
-    ],
-  },
-  {
-    id: 4,
-    shortLabel: 'Phòng làm việc Tầng 2',
-    title: 'Tầng 2 - Phòng Làm Việc: Bàn Gỗ, Kệ Sách & Bản Thảo Di Chúc',
-    subtitle: 'Đại đoàn kết toàn dân tộc, Đoàn kết quốc tế & Mặt trận văn hóa',
-    floor: 'Tầng 2',
-    position: [-1.45, 3.35, -0.15],
-    cameraPos: [-3.6, 5.1, 3.8],
-    cameraTarget: [-1.45, 3.1, -0.2],
-    requiresXRayRoof: true,
-    artifacts: [
-      'Bàn làm việc nhỏ bằng gỗ',
-      'Chiếc đèn bàn tỏa ánh vàng ấm',
-      'Bút chì đỏ - xanh',
-      'Kệ sách đa ngôn ngữ & Tài liệu quốc tế',
-      'Bản thảo Di chúc lịch sử',
-    ],
-    artifactDetails: [
-      {
-        name: 'Bản thảo Di chúc lịch sử',
-        origin: 'Soạn thảo từ 10/5/1965 đến 1969',
-        description:
-          'Văn kiện kết tinh tư tưởng, đạo đức và tâm hồn cao đẹp của Bác viết vào những ngày tháng 5 nhân dịp sinh nhật từ năm 1965 đến năm 1969.',
-      },
-      {
-        name: 'Cây bút chì đỏ - xanh & Đèn bàn',
-        origin: 'Trên bàn làm việc tầng 2',
-        description:
-          'Bác dùng bút chì đỏ - xanh để gạch chân những tin tức gương "Người tốt, việc tốt" trên báo chí hàng ngày để tặng huy hiệu động viên nhân dân.',
-      },
-      {
-        name: 'Giá sách đa ngôn ngữ',
-        origin: 'Góc phòng làm việc',
-        description:
-          'Lưu giữ các tác phẩm kinh điển Mác - Lênin, lịch sử, văn học Việt Nam và thế giới bằng tiếng Việt, Nga, Trung, Pháp, Anh, Tây Ban Nha...',
-      },
-    ],
-    historicalStory:
-      'Trong căn phòng nhỏ tầng 2 bên trái, dưới ánh đèn bàn ấm áp bất kể ngày đêm, Bác Hồ đã miệt mài nghiên cứu tài liệu, viết hàng trăm bài báo tuyên truyền cách mạng, đọc báo phát hiện tấm gương "Người tốt, việc tốt" và đặc biệt là khởi thảo bản Di chúc lịch sử để lại muôn vàn tình thân yêu cho toàn Đảng, toàn dân, toàn quân.',
-    hcmThoughtConnection:
-      'Thể hiện Tư tưởng về Đại đoàn kết toàn dân tộc (thông qua công tác Dân vận, tập hợp quần chúng trong Mặt trận, Công đoàn, Hội Nông dân, Đoàn Thanh niên, Hội Phụ nữ) và Đoàn kết quốc tế trên nguyên tắc độc lập, tự chủ: "Thực lực là cái chiêng mà ngoại giao là cái tiếng. Chiêng có to tiếng mới lớn". Đồng thời khẳng định quan điểm "Văn hóa là một mặt trận", ngòi bút là vũ khí sắc bén phục vụ Tổ quốc và quần chúng nhân dân.',
-    keyQuote: {
-      quote:
-        '“Thực lực là cái chiêng mà ngoại giao là cái tiếng. Chiêng có to tiếng mới lớn... Văn hóa nghệ thuật cũng là một mặt trận. Anh chị em là chiến sĩ trên mặt trận ấy.”',
-      context: 'Tư tưởng Hồ Chí Minh về Đoàn kết quốc tế & Mặt trận văn hóa',
-    },
-    coreValues: [
-      'Đại đoàn kết toàn dân tộc',
-      'Đoàn kết quốc tế & Độc lập tự chủ',
-      'Văn hóa là một mặt trận',
-      'Công tác Dân vận',
+      'Nói đi đôi với làm',
     ],
   },
   {
     id: 5,
-    shortLabel: 'Phòng ngủ Tầng 2',
-    title: 'Tầng 2 - Phòng Ngủ: Giường Đơn, Quạt Lá Cọ & Đài Radio',
-    subtitle: 'Trung với nước, hiếu với dân & Thống nhất lý luận với thực tiễn',
-    floor: 'Tầng 2',
-    position: [1.35, 3.35, -0.15],
-    cameraPos: [3.6, 5.1, 3.8],
-    cameraTarget: [1.35, 3.1, -0.2],
-    requiresXRayRoof: true,
+    shortLabel: 'Tầng 2: Phòng làm việc',
+    title: 'Tầng 2 – Phòng Làm Việc: Bàn Gỗ, Đèn Bàn & Bản Thảo Di Chúc',
+    subtitle: 'Đại đoàn kết toàn dân tộc, Đoàn kết quốc tế & Mặt trận văn hóa',
+    zone: 'Tầng 2 Nhà sàn (Phòng bên trái)',
+    recommendedViewMode: 'floor2',
+    position: [-1.4, 3.1, -0.55],
+    cameraPos: [-2.8, 5.8, 3.4],
+    cameraTarget: [-1.35, 2.85, -0.55],
+    imageUrl: './images/heritage/tang-2-phong-lam-viec.jpg',
+    imageCaption:
+      'Phòng làm việc của Bác Hồ ở tầng 2 với chiếc đèn bàn chụp vải xếp ly, ghế tựa mây và khung cửa sổ nhìn thẳng ra Ao cá Bác Hồ.',
+    gallery: [
+      {
+        url: './images/heritage/tang-2-phong-lam-viec.jpg',
+        caption:
+          'Bàn làm việc gỗ, chiếc ghế tựa mây, cây đèn bàn chụp vải và cửa sổ nhìn ra Ao cá.',
+      },
+      {
+        url: './images/heritage/nha-san-toan-canh.jpg',
+        caption:
+          'Mặt trước tầng 2 Nhà sàn với hành lang gỗ và hệ cửa sổ thông thoáng.',
+      },
+    ],
     artifacts: [
-      'Chiếc giường gỗ đơn trải chiếu cói',
-      'Chiếc quạt lá cọ mộc mạc',
-      'Đài bán dẫn Radio nghe tin miền Nam',
-      'Đồng hồ báo thức nhỏ',
+      'Bàn làm việc gỗ & Ghế tựa mây',
+      'Chiếc đèn bàn chụp vải xếp ly',
+      'Bản thảo Di chúc lịch sử (1965 – 1969)',
+      'Bút chì đỏ - xanh & Giá sách đa ngôn ngữ',
     ],
     artifactDetails: [
       {
-        name: 'Giường gỗ đơn & Chiếu cói',
-        origin: 'Phòng ngủ tầng 2 (rộng hơn 10m²)',
+        name: 'Bản thảo Di chúc lịch sử',
+        origin: 'Khởi thảo ngày 10/5/1965 tại phòng làm việc tầng 2',
         description:
-          'Chiếc giường đơn mộc mạc trải chiếu cói, mùa đông thêm tấm chăn chiên, gối vải giản dị như bao người dân lao động Việt Nam.',
+          'Văn kiện lịch sử vô giá kết tinh toàn bộ tư tưởng, đạo đức, phong cách Hồ Chí Minh và định hướng chiến lược cho cách mạng Việt Nam.',
       },
       {
-        name: 'Chiếc quạt lá cọ',
-        origin: 'Đặt trên bàn nhỏ đầu giường',
+        name: 'Đèn bàn chụp vải & Bút chì đỏ - xanh',
+        origin: 'Hiện vật nguyên bản trên bàn làm việc',
         description:
-          'Những ngày hè oi bức, Bác vẫn dùng quạt lá cọ để tiết kiệm điện cho sản xuất và sinh hoạt của nhân dân.',
-      },
-      {
-        name: 'Đài Radio bán dẫn Zenit',
-        origin: 'Kiều bào Thái Lan kính tặng',
-        description:
-          'Người bạn thân thiết giúp Bác theo dõi tin tức Đài Tiếng nói Việt Nam và lắng nghe từng nhịp thở cuộc chiến đấu của đồng bào miền Nam mỗi đêm.',
+          'Dưới ánh đèn này, Bác đọc báo hàng ngày, dùng bút chì đỏ - xanh đánh dấu các tấm gương "Người tốt, việc tốt" để gửi tặng huy hiệu khen thưởng.',
       },
     ],
     historicalStory:
-      'Căn phòng ngủ nhỏ chỉ hơn 10m² với những vật dụng hết sức đỗi bình dị của một vị Chủ tịch nước: chiếc giường đơn trải chiếu cói, chiếc quạt lá cọ đặt cạnh đầu giường và chiếc đài Radio bán dẫn luôn mở mỗi tối để nghe tin tức về đồng bào, chiến sĩ miền Nam ruột thịt.',
+      'Căn phòng làm việc ở tầng 2 có cửa sổ nhìn thẳng ra Ao cá Bác Hồ và hàng cây xanh mát. Chính tại chiếc bàn gỗ nhỏ này, vào những ngày tháng 5 từ năm 1965 đến năm 1969, Bác đã tập trung trí tuệ viết và sửa chữa bản Di chúc lịch sử để lại cho toàn Đảng, toàn dân và toàn quân.',
     hcmThoughtConnection:
-      'Thể hiện chuẩn mực đạo đức cốt lõi "Trung với nước, hiếu với dân" và "Thương yêu con người, sống có tình có nghĩa". Nếp sống của Bác là bài học mẫu mực về phương pháp học tập Tư tưởng Hồ Chí Minh: sự thống nhất giữa lý luận và thực tiễn, nói đi đôi với làm, suốt đời phấn đấu hy sinh vì độc lập của Tổ quốc và tự do, hạnh phúc của nhân dân.',
+      'Thể hiện Tư tưởng Hồ Chí Minh về Đại đoàn kết toàn dân tộc, xây dựng Đảng trong sạch vững mạnh và Đoàn kết quốc tế trên nguyên tắc độc lập, tự chủ ("Thực lực là cái chiêng mà ngoại giao là cái tiếng"). Đồng thời khẳng định quan điểm "Văn hóa nghệ thuật cũng là một mặt trận".',
+    keyQuote: {
+      quote:
+        '“Đoàn kết là một truyền thống cực kỳ quý báu của Đảng và của dân ta. Các đồng chí từ Trung ương đến các chi bộ cần phải giữ gìn sự đoàn kết nhất trí của Đảng như giữ gìn con ngươi của mắt mình.”',
+      context: 'Di chúc của Chủ tịch Hồ Chí Minh (1969)',
+    },
+    coreValues: [
+      'Đại đoàn kết toàn dân tộc',
+      'Giữ gìn sự đoàn kết trong Đảng',
+      'Đoàn kết quốc tế & Tự lực tự cường',
+      'Văn hóa là một mặt trận',
+    ],
+  },
+  {
+    id: 6,
+    shortLabel: 'Tầng 2: Phòng ngủ',
+    title: 'Tầng 2 – Phòng Ngủ: Giường Đơn, Quạt Lá Cọ & Đài Radio',
+    subtitle: 'Trung với nước, hiếu với dân & Thống nhất lý luận với thực tiễn',
+    zone: 'Tầng 2 Nhà sàn (Phòng bên phải)',
+    recommendedViewMode: 'floor2',
+    position: [1.4, 3.1, -0.55],
+    cameraPos: [2.8, 5.8, 3.4],
+    cameraTarget: [1.35, 2.85, -0.55],
+    imageUrl: './images/heritage/tang-2-phong-ngu.jpg',
+    imageCaption:
+      'Phòng ngủ của Bác Hồ nhìn qua khung cửa chớp gỗ với bàn đặt chiếc mũ cối, đài Radio, lọ hoa tươi và đèn ngủ cạnh giường.',
+    gallery: [
+      {
+        url: './images/heritage/tang-2-phong-ngu.jpg',
+        caption:
+          'Cửa chớp gỗ mở vào phòng ngủ của Bác với bàn đặt chiếc mũ cối, đài Radio, lọ hoa và đèn ngủ.',
+      },
+      {
+        url: './images/heritage/ao-ca-bac-ho.jpg',
+        caption:
+          'Góc phải tầng 2 Nhà sàn nơi đặt phòng ngủ giản dị của Chủ tịch Hồ Chí Minh.',
+      },
+    ],
+    artifacts: [
+      'Chiếc giường gỗ đơn trải chiếu cói',
+      'Đài Radio bán dẫn nghe tin miền Nam',
+      'Chiếc quạt lá cọ & Chiếc mũ cối',
+      'Đồng hồ báo thức & Đèn ngủ nhỏ',
+    ],
+    artifactDetails: [
+      {
+        name: 'Giường đơn trải chiếu cói & Quạt lá cọ',
+        origin: 'Phòng ngủ tầng 2 (diện tích chỉ hơn 10m²)',
+        description:
+          'Nơi nghỉ ngơi của vị Chủ tịch nước vô cùng mộc mạc với chiếc giường đơn trải chiếu cói, chiếc chăn chiên và chiếc quạt lá cọ quê hương.',
+      },
+      {
+        name: 'Đài Radio bán dẫn & Chiếc mũ cối',
+        origin: 'Đặt trên bàn gỗ cạnh cửa sổ phòng ngủ',
+        description:
+          'Mỗi tối trước khi nghỉ và mỗi sáng thức dậy, Bác đều mở đài Radio để theo dõi tin tức chiến đấu của đồng bào, chiến sĩ cả nước.',
+      },
+    ],
+    historicalStory:
+      'Phòng ngủ của Bác ngăn cách với phòng làm việc bằng một vách gỗ nhỏ, rộng vỏn vẹn hơn 10m². Qua khung cửa chớp gỗ mộc mạc là chiếc bàn đặt chiếc mũ cối, chiếc đài Radio, lọ hoa nhỏ và chiếc giường đơn trải chiếu cói giản dị như bất kỳ ngôi nhà nào của người dân Việt Nam.',
+    hcmThoughtConnection:
+      'Thể hiện chuẩn mực đạo đức cốt lõi "Trung với nước, hiếu với dân" và "Thương yêu con người, sống có tình có nghĩa". Nếp sống của Bác là bài học mẫu mực về phương pháp học tập Tư tưởng Hồ Chí Minh: sự thống nhất trọn vẹn giữa lý luận và thực tiễn, nói đi đôi với làm.',
     keyQuote: {
       quote:
         '“Tôi chỉ có một sự ham muốn, ham muốn tột bậc, là làm sao cho nước ta được hoàn toàn độc lập, dân ta được hoàn toàn tự do, đồng bào ai cũng có cơm ăn áo mặc, ai cũng được học hành.”',
-      context: 'Trả lời các nhà báo nước ngoài (Tháng 1/1946)',
+      context: 'Chủ tịch Hồ Chí Minh trả lời các nhà báo (Tháng 1/1946)',
     },
     coreValues: [
       'Trung với nước, hiếu với dân',
       'Thương yêu con người',
-      'Lý luận gắn liền thực tiễn',
-      'Nói đi đôi với làm',
+      'Thống nhất lý luận và thực tiễn',
+      'Tấm gương đạo đức trong sáng',
     ],
   },
 ];
@@ -329,40 +482,58 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
     spotId: 1,
     category: 'Cơ sở hình thành & Văn hóa',
     question:
-      'Việc Chủ tịch Hồ Chí Minh từ chối ở dinh thự Toàn quyền Đông Dương để chọn ngôi nhà sàn giản dị gắn liền với vườn cây, ao cá phản ánh rõ nhất cơ sở nào trong sự hình thành Tư tưởng của Người?',
+      'Không gian Ao cá Bác Hồ, hàng rào dâm bụt và ngôi Nhà sàn giản dị giữa lòng Thủ đô phản ánh rõ nhất cơ sở nào trong sự hình thành Tư tưởng Hồ Chí Minh?',
     options: [
       'Sự kế thừa truyền thống văn hóa tốt đẹp của dân tộc kết hợp với phẩm chất cao đẹp, gắn bó máu thịt với nhân dân của Bác',
-      'Sự áp dụng nguyên bản mô hình kiến trúc phương Tây hiện đại vào điều kiện Việt Nam',
-      'Chủ trương tách biệt hoàn toàn hoạt động lãnh đạo khỏi đời sống xã hội thường nhật',
-      'Quan điểm ưu tiên phát triển kinh tế nông nghiệp truyền thống hơn công nghiệp hóa',
+      'Sự sao chép nguyên bản mô hình kiến trúc phương Tây hiện đại vào Việt Nam',
+      'Chủ trương tách biệt hoạt động lãnh đạo khỏi đời sống thực tiễn xã hội',
+      'Quan điểm chỉ coi trọng kinh tế nông nghiệp truyền thống hơn công nghiệp',
     ],
     correctIndex: 0,
     quoteReference:
-      'Không gian Nhà sàn phản ánh tính dân tộc và tính đại chúng của nền văn hóa mới, bắt nguồn từ truyền thống văn hóa dân tộc và phẩm chất chủ quan của Hồ Chí Minh.',
+      'Không gian Nhà sàn và Ao cá thể hiện tính dân tộc, tính đại chúng và sự hòa hợp với thiên nhiên, bắt nguồn từ truyền thống văn hóa dân tộc và nhân격 Hồ Chí Minh.',
     explanation:
-      'Ngôi nhà sàn, hàng dâm bụt, ao cá thể hiện sự kế thừa giá trị truyền thống văn hóa dân tộc (nhân văn, giản dị, hòa hợp thiên nhiên) và nhân tố chủ quan là tâm hồn của một nhà yêu nước chân chính luôn hòa mình với quần chúng nhân dân.',
+      'Ngôi nhà sàn, hàng dâm bụt, ao cá thể hiện sự kế thừa giá trị truyền thống văn hóa dân tộc (nhân văn, giản dị, hòa hợp thiên nhiên) và nhân tố chủ quan là tâm hồn của một nhà yêu nước chân chính luôn hòa mình với nhân dân.',
   },
   {
     id: 2,
     spotId: 2,
-    category: 'Tư tưởng về Nhà nước',
+    category: 'Đạo đức & Phong cách Người đứng đầu',
     question:
-      'Không gian Tầng 1 Nhà sàn để mở thoáng 4 bề – nơi họp Bộ Chính trị và đón tiếp nhân dân – gắn liền với luận điểm nào của Hồ Chí Minh về vị thế của cán bộ nhà nước?',
+      'Khi tiếp quản Thủ đô năm 1954, việc Bác Hồ từ chối ở tòa Dinh thự Toàn quyền Đông Dương để làm việc tại ngôi Nhà 54 nhỏ bé bên Đường Xoài thể hiện quan điểm nào về quyền lực nhà nước?',
     options: [
-      'Cán bộ nhà nước là những "quan cách mạng" nắm quyền cai trị tối cao',
-      'Cán bộ không phải là "quan cách mạng" mà là "công bộc, đầy tớ" của nhân dân, kiên quyết chống "giặc nội xâm"',
-      'Bộ máy nhà nước chỉ cần tập trung vào công tác đối ngoại và quốc phòng',
-      'Mọi quyết sách chiến lược đều không cần lấy ý kiến từ thực tiễn nhân dân',
+      'Quyền lực thuộc về nhân dân, người lãnh đạo là công bộc tận tụy phục vụ Tổ quốc và nhân dân, không màng danh lợi hay đặc quyền cá nhân',
+      'Trụ sở cơ quan nhà nước không cần sử dụng các công trình kiến trúc lớn',
+      'Mọi hoạt động ngoại giao đều chỉ diễn ra trong phạm vi nhỏ hẹp',
+      'Tách rời nơi ở của lãnh đạo khỏi các cơ quan trung ương',
     ],
-    correctIndex: 1,
+    correctIndex: 0,
     quoteReference:
-      'Cán bộ nhà nước là "công bộc, đầy tớ" của nhân dân, là "người lính vâng mệnh lệnh của quốc dân ra mặt trận".',
+      '“Cả đời tôi chỉ có một mục đích, là phấn đấu cho quyền lợi Tổ quốc, và hạnh phúc của quốc dân.”',
     explanation:
-      'Theo Tư tưởng Hồ Chí Minh về Nhà nước của nhân dân, do nhân dân, vì nhân dân, đội ngũ cán bộ là công bộc phục vụ nhân dân, nhà nước phải minh bạch, gần dân và kiên quyết đấu tranh chống "giặc nội xâm" (tham ô, lãng phí, quan liêu).',
+      'Bác dành tòa Dinh thự lớn làm nơi làm việc chung của Chính phủ và đón khách quốc tế, còn bản thân chọn ngôi nhà nhỏ của người thợ điện cũ (Nhà 54), nêu gương sáng về chí công vô tư, không hưởng thụ đặc quyền.',
   },
   {
     id: 3,
     spotId: 3,
+    category: 'Tư tưởng về Nhà nước',
+    question:
+      'Không gian Tầng 1 Nhà sàn để mở thoáng 4 bề – nơi họp Bộ Chính trị và đón tiếp các đoàn đại biểu nhân dân, thiếu nhi – gắn liền với luận điểm nào của Hồ Chí Minh về cán bộ nhà nước?',
+    options: [
+      'Cán bộ nhà nước là những "quan cách mạng" đứng trên nhân dân',
+      'Cán bộ không phải là "quan cách mạng" mà là "công bộc, đầy tớ" của nhân dân, kiên quyết chống tham ô, lãng phí, quan liêu',
+      'Bộ máy nhà nước chỉ cần tập trung vào công tác quân sự và đối ngoại',
+      'Các quyết sách chiến lược không cần xuất phát từ lợi ích của nhân dân',
+    ],
+    correctIndex: 1,
+    quoteReference:
+      '“Việc gì lợi cho dân, ta phải hết sức làm. Việc gì hại đến dân, ta phải hết sức tránh.”',
+    explanation:
+      'Theo Tư tưởng Hồ Chí Minh về Nhà nước của nhân dân, do nhân dân, vì nhân dân, đội ngũ cán bộ là công bộc phục vụ nhân dân, nhà nước phải minh bạch, gần dân và kiên quyết đấu tranh chống "giặc nội xâm" (tham ô, lãng phí, quan liêu).',
+  },
+  {
+    id: 4,
+    spotId: 4,
     category: 'Tư tưởng về Đạo đức',
     question:
       'Hình ảnh đôi dép cao su gắn bó với Bác từ năm 1947 là biểu tượng cho chuẩn mực đạo đức "Cần, kiệm, liêm, chính, chí công vô tư". Trong tác phẩm "Sửa đổi lối làm việc" (1947), Bác đã ví đạo đức của người cách mạng với hình ảnh nào?',
@@ -379,44 +550,26 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
       'Hồ Chí Minh khẳng định đạo đức là cái gốc của người cách mạng. Tài và đức phải thống nhất, trong đó đạo đức là nền tảng vững chắc để người cán bộ hoàn thành sứ mệnh lãnh đạo và phục vụ nhân dân.',
   },
   {
-    id: 4,
-    spotId: 4,
-    category: 'Đoàn kết quốc tế & Ngoại giao',
+    id: 5,
+    spotId: 5,
+    category: 'Di chúc lịch sử & Xây dựng Đảng',
     question:
-      'Tại phòng làm việc Tầng 2 – nơi lưu giữ nhiều tài liệu quốc tế và ngoại giao – Tư tưởng Hồ Chí Minh về kết hợp sức mạnh dân tộc với sức mạnh thời đại được đúc kết qua hình ảnh ẩn dụ nổi tiếng nào?',
+      'Trong bản Di chúc lịch sử được Bác Hồ soạn thảo tại bàn làm việc Tầng 2 Nhà sàn (1965 – 1969), điều đầu tiên Bác căn dặn toàn Đảng là gì?',
     options: [
-      '“Thực lực là cái chiêng mà ngoại giao là cái tiếng. Chiêng có to tiếng mới lớn”',
-      '“Ngoại giao đi trước mở đường, thực lực trong nước chỉ đóng vai trò phụ trợ”',
-      '“Muốn đi nhanh hãy đi một mình, muốn đi xa hãy dựa hoàn toàn vào bên ngoài”',
-      '“Cửa đóng then cài để giữ vững sự ổn định tuyệt đối bên trong”',
+      'Phải giữ gìn sự đoàn kết nhất trí của Đảng như giữ gìn con ngươi của mắt mình, thực hành dân chủ rộng rãi, tự phê bình và phê bình',
+      'Chỉ tập trung phát triển công nghiệp nặng ngay sau khi chiến tranh kết thúc',
+      'Hạn chế mở rộng quan hệ ngoại giao với các quốc gia khác thể chế chính trị',
+      'Thay đổi toàn bộ hệ thống tổ chức của các đoàn thể quần chúng',
     ],
     correctIndex: 0,
     quoteReference:
-      '“Thực lực là cái chiêng mà ngoại giao là cái tiếng. Chiêng có to tiếng mới lớn.”',
+      '“Các đồng chí từ Trung ương đến các chi bộ cần phải giữ gìn sự đoàn kết nhất trí của Đảng như giữ gìn con ngươi của mắt mình.”',
     explanation:
-      'Trong Tư tưởng Hồ Chí Minh về Đoàn kết quốc tế, độc lập tự chủ và tự lực tự cường ("thực lực là cái chiêng") luôn là cái gốc quyết định hiệu quả của hoạt động đối ngoại và tranh thủ sự ủng hộ quốc tế ("ngoại giao là cái tiếng").',
-  },
-  {
-    id: 5,
-    spotId: 4,
-    category: 'Văn hóa & Báo chí Cách mạng',
-    question:
-      'Với hàng trăm bài báo, bản thảo Di chúc và cây bút chì đỏ - xanh trên bàn làm việc, Chủ tịch Hồ Chí Minh đã xác định vai trò của văn hóa và người làm văn hóa như thế nào?',
-    options: [
-      'Văn hóa là lĩnh vực giải trí thuần túy, đứng ngoài chính trị và kinh tế',
-      'Văn hóa là một mặt trận, người hoạt động văn hóa là chiến sĩ với ngòi bút là vũ khí sắc bén phục vụ Tổ quốc và nhân dân',
-      'Văn hóa chỉ dành riêng cho tầng lớp trí thức hàn lâm trong xã hội',
-      'Văn hóa chỉ phát triển sau khi đã hoàn thành xong mọi nhiệm vụ quân sự',
-    ],
-    correctIndex: 1,
-    quoteReference:
-      '“Văn hóa nghệ thuật cũng là một mặt trận. Anh chị em là chiến sĩ trên mặt trận ấy.”',
-    explanation:
-      'Bác coi văn hóa là một trong bốn mặt trận quan trọng (chính trị, kinh tế, văn hóa, xã hội). Ngòi bút của Người luôn hướng tới tuyên truyền cách mạng, cổ vũ cái thiện ("Người tốt, việc tốt") và phụng sự Tổ quốc.',
+      'Mở đầu bản Di chúc, Bác nói về Đảng và nhấn mạnh "Đoàn kết là một truyền thống cực kỳ quý báu của Đảng và của dân ta", đòi hỏi mỗi cán bộ, đảng viên phải giữ gìn sự đoàn kết nhất trí và có tình đồng chí thương yêu lẫn nhau.',
   },
   {
     id: 6,
-    spotId: 5,
+    spotId: 6,
     category: 'Đạo đức & Phương pháp Cách mạng',
     question:
       'Căn phòng ngủ chỉ hơn 10m² với chiếc giường đơn, quạt lá cọ và chiếc đài Radio nghe tin miền Nam thể hiện chuẩn mực đạo đức cốt lõi nào và nguyên tắc phương pháp luận nào trong học tập Tư tưởng Hồ Chí Minh?',
@@ -433,4 +586,3 @@ export const QUIZ_QUESTIONS: QuizQuestion[] = [
       'Cuộc đời và nếp sống tại Nhà sàn của Bác là tấm gương sáng ngời về "Trung với nước, hiếu với dân", tình yêu thương đồng bào miền Nam sâu nặng và sự thống nhất trọn vẹn giữa lý luận và thực tiễn, nói đi đôi với làm.',
   },
 ];
-
