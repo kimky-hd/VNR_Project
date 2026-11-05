@@ -1,0 +1,116 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    user-select: none;
+    background-color: #05070c;
+  }
+}
+
+/* ================= LIQUID GLASS SYSTEM (VISIONOS / HIGH-END LUXURY AESTHETIC) ================= */
+.liquid-glass {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%),
+              rgba(10, 13, 22, 0.72);
+  backdrop-filter: blur(28px) saturate(190%);
+  -webkit-backdrop-filter: blur(28px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.22),
+              inset 0 -1px 2px 0 rgba(0, 0, 0, 0.5),
+              0 20px 50px -10px rgba(0, 0, 0, 0.75);
+}
+
+.liquid-glass-pill {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%),
+              rgba(13, 17, 28, 0.68);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.2),
+              0 10px 30px -5px rgba(0, 0, 0, 0.6);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-pill:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0.05) 100%),
+              rgba(22, 28, 44, 0.78);
+  border-color: rgba(245, 197, 122, 0.35);
+  box-shadow: inset 0 1px 1px 0 rgba(255, 255, 255, 0.3),
+              0 14px 40px -5px rgba(0, 0, 0, 0.7),
+              0 0 20px rgba(245, 197, 122, 0.15);
+}
+
+.liquid-glass-active {
+  background: linear-gradient(135deg, rgba(245, 197, 122, 0.22) 0%, rgba(180, 120, 50, 0.12) 100%),
+              rgba(18, 22, 34, 0.85);
+  border: 1px solid rgba(245, 210, 140, 0.55);
+  box-shadow: inset 0 1px 2px 0 rgba(255, 240, 200, 0.4),
+              0 12px 35px -5px rgba(217, 119, 6, 0.25),
+              0 0 25px rgba(245, 197, 122, 0.2);
+}
+
+/* Typography styles */
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+.font-cormorant {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+/* Luxurious Gold Gradient Text */
+.text-gold-leaf {
+  background: linear-gradient(135deg, #ffffff 0%, #fef3c7 30%, #fcd34d 70%, #d97706 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gold-subtle {
+  background: linear-gradient(135deg, #fef3c7 0%, #e2d9bc 60%, #b39768 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Refined Dark Vignette Overlay for cinematic Black Myth atmosphere */
+.cinematic-vignette {
+  box-shadow: inset 0 0 140px rgba(0, 0, 0, 0.75), inset 0 0 60px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+/* Custom Scrollbar for Liquid Glass */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(8, 10, 16, 0.4);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(217, 180, 127, 0.25);
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(217, 180, 127, 0.55);
+}
+
+/* Audio waveform animation */
+@keyframes soundwave {
+  0%, 100% {
+    transform: scaleY(0.3);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+.animate-soundwave-1 { animation: soundwave 0.8s ease-in-out infinite; }
+.animate-soundwave-2 { animation: soundwave 0.8s ease-in-out 0.2s infinite; }
+.animate-soundwave-3 { animation: soundwave 0.8s ease-in-out 0.4s infinite; }
+.animate-soundwave-4 { animation: soundwave 0.8s ease-in-out 0.6s infinite; }
