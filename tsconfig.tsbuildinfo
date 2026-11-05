@@ -1,1 +1,1 @@
-{"root":["./src/app.tsx","./src/main.tsx","./src/data/tourdata.ts","./src/components/quizmodal.tsx","./src/components/scene3d.tsx","./src/components/sidebarinfo.tsx","./src/vite-env.d.ts"],"version":"5.6.3"}
+{"root":["./src/app.tsx","./src/main.tsx","./src/data/teamdata.ts","./src/data/tourdata.ts","./src/components/projectintromodal.tsx","./src/components/quizmodal.tsx","./src/components/scene3d.tsx","./src/components/sidebarinfo.tsx","./src/vite-env.d.ts"],"version":"5.6.3"}

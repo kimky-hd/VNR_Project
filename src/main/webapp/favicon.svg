@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <!-- Nền tối giản phong cách không gian di sản bảo tàng -->
+  <rect width="64" height="64" rx="14" fill="#141916"/>
+  <rect x="1.5" y="1.5" width="61" height="61" rx="12.5" stroke="#C6A87C" stroke-opacity="0.3" stroke-width="1.5"/>
+  
+  <!-- Mái dốc 2 tầng Nhà sàn Bác Hồ (2D Minimalist Silhouette) -->
+  <path d="M32 10 L15 22.5 H49 L32 10 Z" fill="#C6A87C"/>
+  <path d="M13 23 H51" stroke="#E2D4BA" stroke-width="2.2" stroke-linecap="round"/>
+  
+  <!-- Khối tầng 2: vách gỗ & cửa sổ thoáng -->
+  <rect x="21" y="24" width="22" height="9" rx="0.5" fill="#222B25" stroke="#C6A87C" stroke-width="1.2"/>
+  <rect x="24.5" y="26" width="4.5" height="5" rx="0.6" fill="#E2D4BA"/>
+  <rect x="35" y="26" width="4.5" height="5" rx="0.6" fill="#E2D4BA"/>
+  
+  <!-- Sàn gỗ tầng 2 -->
+  <rect x="17" y="33" width="30" height="2.5" rx="1" fill="#C6A87C"/>
+  
+  <!-- Hệ 4 cột gỗ tầng 1 nâng sàn -->
+  <rect x="20.5" y="35.5" width="2.4" height="13.5" rx="0.8" fill="#C6A87C"/>
+  <rect x="27.5" y="35.5" width="2.4" height="13.5" rx="0.8" fill="#C6A87C"/>
+  <rect x="34" y="35.5" width="2.4" height="13.5" rx="0.8" fill="#C6A87C"/>
+  <rect x="41" y="35.5" width="2.4" height="13.5" rx="0.8" fill="#C6A87C"/>
+  
+  <!-- Đường nền di tích thanh mảnh -->
+  <path d="M13 49 H51" stroke="#C6A87C" stroke-width="2" stroke-linecap="round"/>
+  
+  <!-- Gợn sóng nước tối giản của Ao cá Bác Hồ -->
+  <path d="M18 54.5 C22.5 53, 27 56, 32 54.5 C37 53, 41.5 56, 46 54.5" stroke="#689D88" stroke-width="2" stroke-linecap="round"/>
+</svg>
+

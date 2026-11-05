@@ -8,6 +8,7 @@ import {
   Pause,
   BookOpenCheck,
   Check,
+  Users,
 } from 'lucide-react';
 import {
   TOUR_SPOTS,
@@ -17,6 +18,7 @@ import {
 import Scene3D from './components/Scene3D';
 import SidebarInfo from './components/SidebarInfo';
 import QuizModal from './components/QuizModal';
+import ProjectIntroModal from './components/ProjectIntroModal';
 
 export const App: React.FC = () => {
   const [activeSpot, setActiveSpot] = useState<TourSpot | null>(null);
@@ -25,6 +27,8 @@ export const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ArchitecturalViewMode>('overview');
   const [isAutoTour, setIsAutoTour] = useState<boolean>(false);
   const [isQuizOpen, setIsQuizOpen] = useState<boolean>(false);
+  const [isIntroOpen, setIsIntroOpen] = useState<boolean>(true);
+  const [hasCompletedIntro, setHasCompletedIntro] = useState<boolean>(false);
   const [resetTrigger, setResetTrigger] = useState<number>(0);
 
   const handleSelectSpot = useCallback((spot: TourSpot) => {
@@ -54,8 +58,13 @@ export const App: React.FC = () => {
     setResetTrigger((prev) => prev + 1);
   }, []);
 
+  const handleCloseIntro = useCallback(() => {
+    setIsIntroOpen(false);
+    setHasCompletedIntro(true);
+  }, []);
+
   useEffect(() => {
-    if (!isAutoTour) return;
+    if (!isAutoTour || isIntroOpen) return;
 
     if (!activeSpot) {
       handleSelectSpot(TOUR_SPOTS[0]);
@@ -78,7 +87,7 @@ export const App: React.FC = () => {
     }, 9000);
 
     return () => window.clearInterval(timer);
-  }, [isAutoTour, activeSpot, handleSelectSpot]);
+  }, [isAutoTour, isIntroOpen, activeSpot, handleSelectSpot]);
 
   return (
     <div className="relative w-screen h-screen overflow-hidden bg-[#161917] text-[#F5F2EB] select-none">
@@ -98,8 +107,12 @@ export const App: React.FC = () => {
       {/* TOP HEADER – TỐI GIẢN, TRANG NHÃ */}
       <header className="fixed top-3 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl museum-panel">
         <div>
-          <div className="text-[11px] font-medium text-[#C6A87C] uppercase tracking-wider">
-            Khu Di Tích Chủ Tịch Hồ Chí Minh Tại Phủ Chủ Tịch
+          <div className="flex items-center gap-2 text-[11px] font-medium text-[#C6A87C] uppercase tracking-wider">
+            <span>Khu Di Tích Chủ Tịch Hồ Chí Minh Tại Phủ Chủ Tịch</span>
+            <span className="hidden sm:inline">•</span>
+            <span className="hidden sm:inline text-[#E5DEC9] bg-[#C6A87C]/15 px-2 py-0.5 rounded border border-[#C6A87C]/30">
+              Nhóm: Chủ đề 6 - VNR202
+            </span>
           </div>
           <h1 className="text-sm sm:text-base font-editorial font-semibold text-[#F5F2EB]">
             Không Gian Tham Quan Nhà Sàn Bác Hồ &amp; Tư Tưởng Hồ Chí Minh
@@ -107,6 +120,17 @@ export const App: React.FC = () => {
         </div>
 
         <div className="flex items-center flex-wrap gap-2">
+          {/* Nút Xem Thông tin Nhóm & Đề tài Sáng tạo */}
+          <button
+            type="button"
+            onClick={() => setIsIntroOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium museum-button hover:border-[#C6A87C] text-[#DFC8A5] cursor-pointer"
+            title="Xem thông tin Nhóm 6, danh sách thành viên và mục tiêu sản phẩm sáng tạo"
+          >
+            <Users className="w-3.5 h-3.5 text-[#C6A87C]" />
+            <span>Thông tin nhóm (VNR202)</span>
+          </button>
+
           {/* Cụm chuyển đổi 3 chế độ kiến trúc: Tổng thể / Mặt cắt Tầng 1 / Mặt cắt Tầng 2 */}
           <div
             className="flex items-center gap-1 p-1 rounded-lg bg-black/25 border border-[#D6CBB8]/15"
@@ -277,6 +301,13 @@ export const App: React.FC = () => {
           );
         })}
       </nav>
+
+      {/* MODAL MÀN HÌNH INTRO THÔNG TIN NHÓM & SẢN PHẨM SÁNG TẠO */}
+      <ProjectIntroModal
+        isOpen={isIntroOpen}
+        onClose={handleCloseIntro}
+        isInitialIntro={!hasCompletedIntro}
+      />
 
       {/* MODAL ÔN TẬP KIẾN THỨC */}
       <QuizModal
